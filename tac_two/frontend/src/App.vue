@@ -12,6 +12,10 @@ const currentPage = ref('home')
 
 function navigate(label) {
   if (label === 'Home') currentPage.value = 'home'
+  if (label === 'Play') currentPage.value = 'home'
+  if (label === 'Learn') currentPage.value = 'how-to-play'
+  if (label === 'Rankings') currentPage.value = 'home'
+
 }
 
 const profileStats = [
@@ -46,7 +50,7 @@ const modes = [
   <div class="app">
     <!-- Top bar -->
     <header class="header">
-      <img class="logo" src="/workspaces/artifact/docs/design/tac2-logo.svg" alt="Tac2" />
+      <img class="logo" src="/design/tac2-logo.svg" alt="Tac2" />
 
       <nav class="tabs">
         <a v-for="tab in tabs"
@@ -63,7 +67,7 @@ const modes = [
       </nav>
 
       <a href="#" class="profile" @click.prevent="currentPage = 'profile'">
-        <img class="profile-picture" src="/workspaces/artifact/docs/design/mochi-mascot.svg" alt="" />
+        <img class="profile-picture" src="/design/mochi-mascot.svg" alt="" />
         <span class="profile-text">
           <strong>Sofia</strong>
           <small>1,240 leaves</small>
@@ -85,9 +89,9 @@ const modes = [
 
           <div class="buttons">
             <a href="#modes" class="button">Choose a game →</a>
-            <a href="#modes" class="link-button">
+            <a href="#modes" class="link-button" @click.prevent="currentPage = 'how-to-play'">
               <span class="play-circle">
-                <svg class="icon"><use href="/workspaces/artifact/docs/design/tac2-interface-icons.svg#play" /></svg>
+                <svg class="icon"><use href="/design/tac2-interface-icons.svg#play" /></svg>
               </span>
               How to play
             </a>
@@ -102,37 +106,17 @@ const modes = [
           <div class="tile tile-x">×</div>
           <div class="tile tile-o">○</div>
           <div class="tip"><strong>Tip!</strong> Every move sends your rival somewhere new.</div>
-          <img class="mochi" src="/workspaces/artifact/docs/design/mochi-mascot.svg" alt="Mochi the cat" />
+          <img class="mochi" src="/design/mochi-mascot.svg" alt="Mochi the cat" />
         </div>
       </section>
 
-      <!-- Game mode cards -->
-      <section class="modes" id="modes">
-        <div>
-          <p class="eyebrow">Pick your pace</p>
-          <h2>A game for every mood</h2>
-        </div>
-
-        <div class="cards">
-          <a v-for="mode in modes" :key="mode.title" href="#" class="card" :class="mode.colour">
-            <span class="card-icon">
-              <svg class="icon"><use :href="'#' + mode.icon"></use></svg>
-            </span>
-            <span class="card-text">
-              <strong>{{ mode.title }}</strong>
-              <small>{{ mode.text }}</small>
-            </span>
-            <span>→</span>
-          </a>
-        </div>
-      </section>
       </template>
 <!-- Profile page -->
 <section v-else-if="currentPage === 'profile'" class="profile-page">
   <div class="profile-banner">
     <div class="big-avatar">
       <img
-        src="/workspaces/artifact/docs/design/mochi-mascot.svg"
+        src="/design/mochi-mascot.svg"
         alt="Mochi the cat"
       />
     </div>
@@ -211,6 +195,169 @@ const modes = [
   </div>
 </section>
 
+<!-- How to Play page -->
+<section
+  v-else-if="currentPage === 'how-to-play'"
+  class="how-to-play-page"
+>
+  <button
+    class="back-link"
+    @click="currentPage = 'home'"
+  >
+    ← Back to Home
+  </button>
+
+  <section class="rules-hero">
+    <p class="eyebrow">The little guide</p>
+    <h1>Think small.<br />Play <span>clever.</span></h1>
+    <p class="rules-intro">
+      Nine little boards. One big strategy.
+      Learn the twist that makes TAC2 different.
+    </p>
+    <div class="rule-badges">
+      <span>✦ Easy to learn</span>
+      <span>♟ Two players</span>
+      <span>♡ Strategy first</span>
+    </div>
+  </section>
+
+  <section class="rules-section">
+    <div class="section-heading">
+      <p class="eyebrow">The basics</p>
+      <h2>Three steps to get started</h2>
+    </div>
+
+    <div class="rule-cards">
+      <article class="rule-card coral">
+        <div class="rule-number">01</div>
+        <div class="mini-board">
+          <span>×</span><span></span><span>○</span>
+          <span></span><span>×</span><span></span>
+          <span>○</span><span></span><span></span>
+        </div>
+        <h3>Take your turn</h3>
+        <p>
+          Players take turns placing their mark, X or O,
+          in an empty square.
+        </p>
+      </article>
+
+      <article class="rule-card teal">
+        <div class="rule-number">02</div>
+        <div class="mini-board">
+          <span></span><span>×</span><span></span>
+          <span></span><span>○</span><span></span>
+          <span></span><span>×</span><span></span>
+        </div>
+        <h3>Think one move ahead</h3>
+        <p>
+          Your move determines which small board your
+          opponent must play in next.
+        </p>
+      </article>
+
+      <article class="rule-card violet">
+        <div class="rule-number">03</div>
+        <div class="mini-board winning-board">
+          <span>×</span><span>×</span><span>×</span>
+          <span>○</span><span>○</span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+        <h3>Win the big board</h3>
+        <p>
+          Win small boards by making three in a row.
+          Win the overall game by claiming three small
+          boards in a row.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="twist-section">
+    <div class="twist-copy">
+      <p class="eyebrow">The special twist</p>
+      <h2>Your square decides their board.</h2>
+      <p>
+        Every square on a small board corresponds to
+        another board in the larger 3 × 3 grid.
+        If you play in the top-right square, your
+        opponent goes to the top-right board.
+      </p>
+      <p>
+        So don't just ask, “Where can I win?”
+        Ask, “Where will my move send them?”
+      </p>
+    </div>
+
+    <div class="twist-example">
+      <div class="example-label">A move changes everything</div>
+      <div class="big-board">
+        <div class="small-board">
+          <span></span><span></span><span></span>
+          <span></span><span>×</span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+        <div class="small-board"><span></span><span></span><span></span><span></span><span>○</span><span></span><span></span><span></span><span></span></div>
+        <div class="small-board"><span></span><span>×</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="small-board"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="small-board"><span></span><span></span><span></span><span></span><span>○</span><span></span><span></span><span></span><span></span></div>
+        <div class="small-board target-board"><span></span><span></span><span></span><span></span><span>×</span><span></span><span></span><span></span><span></span></div>
+        <div class="small-board"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="small-board"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="small-board"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+      <p class="example-caption">
+        Play in a square, send your rival to the
+        matching board.
+      </p>
+    </div>
+  </section>
+
+  <section class="tips-section">
+    <p class="eyebrow">A few friendly reminders</p>
+    <h2>Play smart, stay cozy.</h2>
+
+    <div class="tip-list">
+      <div class="tip-item">
+        <span class="tip-icon">✦</span>
+        <div>
+          <h3>Plan ahead</h3>
+          <p>Think about your next move and your opponent's options.</p>
+        </div>
+      </div>
+
+      <div class="tip-item">
+        <span class="tip-icon">♡</span>
+        <div>
+          <h3>Watch the whole board</h3>
+          <p>A small-board win can bring you closer to the big one.</p>
+        </div>
+      </div>
+
+      <div class="tip-item">
+        <span class="tip-icon">☁</span>
+        <div>
+          <h3>Enjoy the game</h3>
+          <p>Every round is a chance to learn a new strategy.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rules-cta">
+    <div>
+      <p class="eyebrow">Ready when you are</p>
+      <h2>Let's make a move.</h2>
+      <p>Put your new strategy to the test.</p>
+    </div>
+    <button
+      class="button"
+      @click="currentPage = 'home'"
+    >
+      Choose a game →
+    </button>
+  </section>
+</section>
     </main>
   </div>
 </template>
