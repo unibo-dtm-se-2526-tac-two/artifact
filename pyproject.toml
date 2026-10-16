@@ -4,7 +4,7 @@ packages = [
     { include = "tac_two" },
 ]
 version = "0.1.0"
-description = "A template for Python projects, using Poetry"
+description = "A two-level tic-tac-toe game""
 authors = ["Begoyim Kosimova <begoyim.kosimova@studio.unibo.it>",
            "Sofia Scardovi <sofia.scardovi@studio.unibo.it>",
            "Martina Samorè <martina.samore@studio.unibo.it>",]
