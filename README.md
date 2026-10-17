@@ -10,9 +10,6 @@ A two-player, two-level tic-tac-toe strategy game featuring forced-board moves a
 
 ## Project Overview
 
-
-## Project Overview
-
 **Tac²** is a two-player strategy game that expands classic tic-tac-toe into two levels: a large 3×3 grid containing nine smaller tic-tac-toe boards.
 
 The objective is to win three small boards in a row, column, or diagonal on the larger board. Each move determines which small board the opponent must play in next. If the designated board has already been won or is full, the opponent can choose another available board.
