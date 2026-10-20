@@ -14,6 +14,13 @@ readme = "README.md"
 [tool.poetry.dependencies]
 # update the Python versions in .github/workflows/check.yml if you change this
 python = ">= 3.10.0 < 4.0.0"
+fastapi = "^0.152.0"
+fastapi-users = {extras = ["sqlalchemy"], version = "^15.0.5"}
+sqlalchemy = {version = ">=2.0,<2.1", extras = ["asyncio"]}
+asyncpg = "^0.32.0"
+alembic = "^1.20.0"
+uvicorn = "^0.54.0"
+pydantic-settings = ">=2.0,<2.16"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.4.0"
@@ -22,6 +29,9 @@ poethepoet = "^0.37.0"
 poetry = "^1.8.3"
 pytest = "^8.3.5"
 ruff = "^0.15.0"
+httpx = "^0.28.1"
+pytest-asyncio = "^1.4.0"
+aiosqlite = "^0.22.1"
 
 [tool.poe.tasks]
 test = "pytest"
