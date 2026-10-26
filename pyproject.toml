@@ -3,7 +3,7 @@ name = "tac_two"
 packages = [
     { include = "tac_two" },
 ]
-version = "0.1.0"
+version = "1.0.0"
 description = "A two-level tic-tac-toe game"
 authors = ["Begoyim Kosimova <begoyim.kosimova@studio.unibo.it>",
            "Sofia Scardovi <sofia.scardovi@studio.unibo.it>",
