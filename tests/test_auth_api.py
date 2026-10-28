@@ -13,6 +13,7 @@ from tac_two.api.dependencies import get_session
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"
+LOGOUT_URL = "/api/v1/auth/logout"
 ME_URL = "/api/v1/users/me"
 
 NEW_USER = {
@@ -131,3 +132,26 @@ async def test_me_returns_the_logged_user(client: AsyncClient) -> None:
 async def test_me_needs_a_token(client: AsyncClient) -> None:
     response = await client.get(ME_URL)
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_logout_with_a_token(client: AsyncClient) -> None:
+    await client.post(REGISTER_URL, json=NEW_USER)
+    token = await login(client, NEW_USER["email"], NEW_USER["password"])
+    response = await client.post(
+        LOGOUT_URL, headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_frontend_origin_is_allowed(client: AsyncClient) -> None:
+    response = await client.options(
+        REGISTER_URL,
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
