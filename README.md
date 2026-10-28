@@ -2,7 +2,7 @@
 # Tac²
 
 ![Status](https://img.shields.io/badge/status-in%20development-orange)
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
 ![Vue.js](https://img.shields.io/badge/Vue.js-frontend-42b883?logo=vuedotjs&logoColor=white)
 ![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey?logo=apache)
 
@@ -86,9 +86,13 @@ The repository separates the Python application from the Vue frontend.
 ```text
 artifact/
 ├── docs
+├── migrations/            # Alembic: creation and changes of the database tables
 ├── tac_two/
 │   ├── __init__.py
 │   ├── __main__.py
+│   ├── domain/            # core concepts and repository interfaces
+│   ├── adapters/          # PostgreSQL models, settings, repository implementations
+│   ├── api/               # FastAPI app, routes, schemas, authentication
 │   └── frontend/
 │       ├── src/
 │       │   ├── components/
@@ -102,6 +106,9 @@ artifact/
 │       └── vite.config.js
 ├── tests/
 ├── pyproject.toml
+├── docker-compose.yml
+├── alembic.ini
+├── .env.example
 ├── README.md
 └── LICENSE
 ```
@@ -116,6 +123,7 @@ This illustrates the principal project files; additional configuration and sourc
 - Poetry.
 - Node.js compatible with the frontend's `package.json` requirements.
 - npm.
+- Docker and Docker Compose (for the PostgreSQL database).
 
 ### Python Environment
 
@@ -149,6 +157,52 @@ Generate an HTML coverage report:
 ```bash
 poetry run poe coverage-html
 ```
+
+### Backend (API and database)
+
+1. Create your local settings file from the example (the `.env` file is never committed):
+
+```bash
+# Windows PowerShell
+Copy-Item .env.example .env
+# macOS / Linux
+cp .env.example .env
+```
+
+2. Open `.env` and set your own values: replace `change_me` with your password in both `POSTGRES_PASSWORD` and `DATABASE_URL` (they must match), and put a random value in `SECRET_KEY`:
+
+```bash
+poetry run python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+3. Start PostgreSQL with Docker (Docker Desktop must be running):
+
+```bash
+docker compose up -d
+```
+
+4. Create the database tables:
+
+```bash
+poetry run alembic upgrade head
+```
+
+5. Start the API:
+
+```bash
+poetry run uvicorn tac_two.api.app:app --reload
+```
+
+The API runs at `http://localhost:8000` and its interactive documentation is at `http://localhost:8000/docs`.
+
+Main routes (version 1):
+
+| Method | Route | What it does |
+|---|---|---|
+| POST | `/api/v1/auth/register` | create an account (email, password, username) |
+| POST | `/api/v1/auth/login` | log in (form data: `username` is the email, plus `password`) and get a token |
+| POST | `/api/v1/auth/logout` | log out |
+| GET | `/api/v1/users/me` | data of the logged user (needs the token) |
 
 ### Frontend Environment
 
