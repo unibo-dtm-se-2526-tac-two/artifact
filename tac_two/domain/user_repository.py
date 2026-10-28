@@ -13,6 +13,3 @@ class UserRepository(ABC):
 
     @abstractmethod
     async def get_by_username(self, username: str) -> User | None: ...
-
-    @abstractmethod
-    async def add(self, user: User) -> None: ...
