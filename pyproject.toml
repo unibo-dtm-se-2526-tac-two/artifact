@@ -3,15 +3,24 @@ name = "tac_two"
 packages = [
     { include = "tac_two" },
 ]
-version = "2.4.1"
-description = "A template for Python projects, using Poetry"
-authors = ["Giovanni Ciatto <giovanni.ciatto@unibo.it>"]
+version = "1.1.0"
+description = "A two-level tic-tac-toe game"
+authors = ["Begoyim Kosimova <begoyim.kosimova@studio.unibo.it>",
+           "Sofia Scardovi <sofia.scardovi@studio.unibo.it>",
+           "Martina Samorè <martina.samore@studio.unibo.it>",]
 license = "Apache 2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
 # update the Python versions in .github/workflows/check.yml if you change this
-python = ">= 3.9.0 < 4.0.0"
+python = ">= 3.10.0 < 4.0.0"
+fastapi = "^0.152.0"
+fastapi-users = {extras = ["sqlalchemy"], version = "^15.0.5"}
+sqlalchemy = {version = ">=2.0,<2.1", extras = ["asyncio"]}
+asyncpg = "^0.32.0"
+alembic = "^1.20.0"
+uvicorn = "^0.54.0"
+pydantic-settings = ">=2.0,<2.16"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.4.0"
@@ -20,6 +29,9 @@ poethepoet = "^0.37.0"
 poetry = "^1.8.3"
 pytest = "^8.3.5"
 ruff = "^0.15.0"
+httpx = "^0.28.1"
+pytest-asyncio = "^1.4.0"
+aiosqlite = "^0.22.1"
 
 [tool.poe.tasks]
 test = "pytest"
@@ -40,3 +52,6 @@ static-checks = [
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
