@@ -47,16 +47,3 @@
 ### Refactoring
 
 * **frontend:** separate views and add routing ([b07eab5](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/b07eab5455e062d520d02b3e1ab43e95ebeecf61))
-
-# Changelog
-
-All notable changes to Tac² will be documented in this file.
-
-## [Unreleased]
-
-### Added
-- Tac² project documentation.
-
-### Changed
-- Updated package metadata in `pyproject.toml`.
-- Replaced template-specific README content with project documentation.
