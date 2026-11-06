@@ -6,7 +6,7 @@ from tac_two.domain.game.clock import Clock
 from tac_two.domain.game.common import GameOverError, IllegalMoveError, Player
 from tac_two.domain.game.game import EndReason, Game
 
-X, O = Player.X, Player.O # noqa: E741
+X, O = Player.X, Player.O  # noqa: E741
 
 
 def play_all(game: Game, moves: list[tuple[int, int]]) -> None:
