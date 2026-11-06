@@ -10,7 +10,7 @@ Move = tuple[int, int]
 
 class Player(Enum):
     X = "X"
-    O = "O" # noqa: E741
+    O = "O"  # noqa: E741
 
     @property
     def opponent(self) -> "Player":

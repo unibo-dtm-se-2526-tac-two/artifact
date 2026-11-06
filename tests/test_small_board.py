@@ -3,7 +3,7 @@ import pytest
 from tac_two.domain.game.common import IllegalMoveError, Player
 from tac_two.domain.game.small_board import SmallBoard
 
-X, O = Player.X, Player.O # noqa: E741
+X, O = Player.X, Player.O  # noqa: E741
 
 
 def fill(board: SmallBoard, moves: dict[int, Player]) -> None:

@@ -3,7 +3,7 @@ import pytest
 from tac_two.domain.game.clock import DEFAULT_TIME_SECONDS, Clock
 from tac_two.domain.game.common import Player
 
-X, O = Player.X, Player.O # noqa: E741
+X, O = Player.X, Player.O  # noqa: E741
 
 
 def test_default_is_ten_minutes_each() -> None:
