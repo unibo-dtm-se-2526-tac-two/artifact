@@ -1,47 +1,100 @@
+
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
-const ICONS = '/design/tac2-extra-icons.svg' // icon file in public/design
+const router = useRouter()
+const authStore = useAuthStore()
 
-const mode = ref('signin') // 'signin' | 'signup' | 'forgot'
+const ICONS = '/design/tac2-extra-icons.svg'
+
+const mode = ref('signin')
 const showPassword = ref(false)
-const name = ref('')
+const username = ref('')
 const email = ref('')
 const password = ref('')
-const message = ref(null) // { type: 'error' | 'info', text: '...' }
+const message = ref(null)
+const isLoading = ref(false)
 
 function setMode(newMode) {
   mode.value = newMode
   message.value = null
+  password.value = ''
 }
 
-function submitForm() {
+async function submitForm() {
   message.value = null
 
-  if (mode.value === 'signup' && !name.value.trim()) {
-    message.value = { type: 'error', text: 'Please choose a display name.' }
-    return
-  }
   if (!email.value.trim() || !email.value.includes('@')) {
-    message.value = { type: 'error', text: 'Please enter a valid email address.' }
-    return
-  }
-  if (mode.value !== 'forgot' && !password.value) {
-    message.value = { type: 'error', text: 'Please enter your password.' }
-    return
-  }
-  if (mode.value === 'signup' && password.value.length < 8) {
-    message.value = { type: 'error', text: 'Use at least 8 characters for your password.' }
+    message.value = {
+      type: 'error',
+      text: 'Please enter a valid email address.',
+    }
     return
   }
 
-  // TODO: send this to the backend (sign in, create account or send a reset link).
-  message.value = { type: 'info', text: 'The form is ready. The backend is not connected yet.' }
-}
+  if (mode.value === 'signup') {
+    if (!/^[A-Za-z0-9_]{3,30}$/.test(username.value.trim())) {
+      message.value = {
+        type: 'error',
+        text: 'Username must be 3–30 characters and contain only letters, numbers, and underscores.',
+      }
+      return
+    }
 
-function googleSignIn() {
-  // TODO: Google sign-in
-  message.value = { type: 'info', text: 'Google sign-in is not connected yet.' }
+    if (password.value.length < 8) {
+      message.value = {
+        type: 'error',
+        text: 'Password must contain at least 8 characters.',
+      }
+      return
+    }
+  }
+
+  if (!password.value) {
+    message.value = {
+      type: 'error',
+      text: 'Please enter your password.',
+    }
+    return
+  }
+
+  isLoading.value = true
+  authStore.isLoading = true
+
+  try {
+    if (mode.value === 'signup') {
+      await authStore.register(
+        username.value.trim(),
+        email.value.trim(),
+        password.value,
+      )
+
+      password.value = ''
+      mode.value = 'signin'
+
+      message.value = {
+        type: 'success',
+        text: 'Account created successfully! You can now sign in.',
+      }
+    } else {
+      await authStore.login(
+        email.value.trim(),
+        password.value,
+      )
+
+      await router.push('/')
+    }
+  } catch (error) {
+    message.value = {
+      type: 'error',
+      text: error.message || 'Something went wrong. Please try again.',
+    }
+  } finally {
+    isLoading.value = false
+    authStore.isLoading = false
+  }
 }
 </script>
 
@@ -63,9 +116,11 @@ function googleSignIn() {
           <div class="brand-mark"><span>T</span><span>2</span></div>
           <div class="brand-name">Tac<span>2</span></div>
         </div>
+
         <p class="auth-tagline">
           Nine boards, one clever move at a time. Every square is a choice.
         </p>
+
         <div class="auth-trust">
           <span>2,460 players</span>
           <span>Spring season</span>
@@ -79,47 +134,69 @@ function googleSignIn() {
         <RouterLink to="/" class="auth-back">← Back to Tac2</RouterLink>
 
         <div class="auth-tabs">
-          <button type="button" :class="{ active: mode === 'signin' }" @click="setMode('signin')">
+          <button
+            type="button"
+            :class="{ active: mode === 'signin' }"
+            @click="setMode('signin')"
+          >
             Sign in
           </button>
-          <button type="button" :class="{ active: mode === 'signup' }" @click="setMode('signup')">
+
+          <button
+            type="button"
+            :class="{ active: mode === 'signup' }"
+            @click="setMode('signup')"
+          >
             Create account
           </button>
         </div>
 
         <h1 class="auth-heading">
-          {{ mode === 'signin' ? 'Welcome back!' : mode === 'signup' ? 'Join the game' : 'Reset your password' }}
+          {{ mode === 'signin' ? 'Welcome back!' : 'Join the game' }}
         </h1>
+
         <p class="auth-subheading">
           {{
             mode === 'signin'
               ? 'Sign in to continue your clever streak.'
-              : mode === 'signup'
-                ? 'Create your account to track matches and climb the board.'
-                : 'Enter your email and we’ll send you a reset link.'
+              : 'Create your account to track matches and climb the board.'
           }}
         </p>
 
         <form class="auth-form" novalidate @submit.prevent="submitForm">
+
+          <!-- Username: registration only -->
           <div v-if="mode === 'signup'" class="input-group">
-            <label for="auth-name">Display name</label>
+            <label for="auth-name">Username</label>
+
             <div class="input-wrap">
-              <svg class="icon"><use :href="ICONS + '#user'" /></svg>
+              <svg class="icon">
+                <use :href="ICONS + '#user'" />
+              </svg>
+
               <input
                 id="auth-name"
-                v-model="name"
+                v-model="username"
                 class="auth-input"
                 type="text"
-                placeholder="Sofia Scardovi"
-                autocomplete="name"
+                placeholder="sofia_sc"
+                autocomplete="username"
+                minlength="3"
+                maxlength="30"
+                required
               />
             </div>
           </div>
 
+          <!-- Email -->
           <div class="input-group">
             <label for="auth-email">Email address</label>
+
             <div class="input-wrap">
-              <svg class="icon"><use :href="ICONS + '#mail'" /></svg>
+              <svg class="icon">
+                <use :href="ICONS + '#mail'" />
+              </svg>
+
               <input
                 id="auth-email"
                 v-model="email"
@@ -127,14 +204,20 @@ function googleSignIn() {
                 type="email"
                 placeholder="sofia@example.com"
                 autocomplete="email"
+                required
               />
             </div>
           </div>
 
-          <div v-if="mode !== 'forgot'" class="input-group">
+          <!-- Password -->
+          <div class="input-group">
             <label for="auth-password">Password</label>
+
             <div class="input-wrap">
-              <svg class="icon"><use :href="ICONS + '#lock'" /></svg>
+              <svg class="icon">
+                <use :href="ICONS + '#lock'" />
+              </svg>
+
               <input
                 id="auth-password"
                 v-model="password"
@@ -142,55 +225,60 @@ function googleSignIn() {
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="••••••••"
                 :autocomplete="mode === 'signin' ? 'current-password' : 'new-password'"
+                required
               />
+
               <button
                 type="button"
                 class="pw-toggle"
                 :aria-label="showPassword ? 'Hide password' : 'Show password'"
                 @click="showPassword = !showPassword"
               >
-                <svg class="icon"><use :href="ICONS + '#' + (showPassword ? 'eye-off' : 'eye')" /></svg>
+                <svg class="icon">
+                  <use :href="ICONS + '#' + (showPassword ? 'eye-off' : 'eye')" />
+                </svg>
               </button>
             </div>
           </div>
 
-          <button v-if="mode === 'signin'" type="button" class="forgot-link" @click="setMode('forgot')">
-            Forgot password?
-          </button>
-
-          <p v-if="message" class="auth-message" :class="message.type" role="status">
+          <!-- Backend messages -->
+          <p
+            v-if="message"
+            class="auth-message"
+            :class="message.type"
+            role="status"
+          >
             {{ message.text }}
           </p>
 
-          <button type="submit" class="auth-submit-btn">
-            {{ mode === 'signin' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link' }}
-            <svg class="icon"><use :href="ICONS + '#arrow'" /></svg>
+          <!-- Submit -->
+          <button
+            type="submit"
+            class="auth-submit-btn"
+            :disabled="isLoading"
+          >
+            {{
+              isLoading
+                ? 'Please wait...'
+                : mode === 'signin'
+                  ? 'Sign in'
+                  : 'Create account'
+            }}
+
+            <svg class="icon">
+              <use :href="ICONS + '#arrow'" />
+            </svg>
           </button>
         </form>
 
-        <template v-if="mode !== 'forgot'">
-          <div class="auth-divider"><span>or continue with</span></div>
-
-          <button type="button" class="google-btn" @click="googleSignIn">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-            </svg>
-            Continue with Google
-          </button>
-        </template>
-
+        <!-- Switch between sign in and registration -->
         <p class="auth-switch">
-          {{
-            mode === 'signin'
-              ? 'New here? '
-              : mode === 'signup'
-                ? 'Already have an account? '
-                : 'Remembered your password? '
-          }}
-          <button type="button" @click="setMode(mode === 'signin' ? 'signup' : 'signin')">
+          {{ mode === 'signin' ? 'New here? ' : 'Already have an account? ' }}
+
+          <button
+            type="button"
+            @click="setMode(mode === 'signin' ? 'signup' : 'signin')"
+          >
             {{ mode === 'signin' ? 'Create an account' : 'Sign in instead' }}
           </button>
         </p>
@@ -495,22 +583,7 @@ function googleSignIn() {
   color: var(--ink);
 }
 
-.forgot-link {
-  align-self: flex-end;
-  margin-top: -4px;
-  border: none;
-  background: none;
-  color: var(--teal);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.forgot-link:hover {
-  text-decoration: underline;
-}
-
+/* ----- Messages ----- */
 .auth-message {
   padding: 11px 14px;
   border-radius: 12px;
@@ -522,11 +595,12 @@ function googleSignIn() {
   color: var(--danger);
 }
 
-.auth-message.info {
+.auth-message.success {
   background: var(--teal-soft);
   color: var(--teal-dark);
 }
 
+/* ----- Submit button ----- */
 .auth-submit-btn {
   display: flex;
   align-items: center;
@@ -552,50 +626,17 @@ function googleSignIn() {
   height: 17px;
 }
 
-.auth-submit-btn:hover {
+.auth-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 13px 26px rgba(47, 138, 127, 0.3);
 }
 
-.auth-divider {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 20px 0;
-  color: var(--muted);
-  font-size: 12px;
+.auth-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
-.auth-divider::before,
-.auth-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--line);
-}
-
-.google-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  height: 50px;
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--paper);
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.google-btn:hover {
-  border-color: rgba(41, 59, 58, 0.25);
-  box-shadow: 0 4px 14px rgba(41, 59, 58, 0.07);
-}
-
+/* ----- Account switch ----- */
 .auth-switch {
   margin-top: 18px;
   color: var(--muted);
@@ -616,7 +657,7 @@ function googleSignIn() {
   text-decoration: underline;
 }
 
-/* ----- Small screens: only the form ----- */
+/* ----- Small screens ----- */
 @media (max-width: 1000px) {
   .auth-screen {
     grid-template-columns: 340px 1fr;

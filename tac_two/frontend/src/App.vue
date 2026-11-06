@@ -1,9 +1,13 @@
 <script setup>
+import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from './stores/auth'
 
 const route = useRoute()
+const authStore = useAuthStore()
+
 const ICONS = '/design/tac2-interface-icons.svg'
-const EXTRA_ICONS = '/design/tac2-extra-icons.svg' // the extra icon file (login, mail, ...)
+const EXTRA_ICONS = '/design/tac2-extra-icons.svg'
 
 // "to" = where the tab goes, "activeOn" = which page makes the tab look selected
 const tabs = [
@@ -11,14 +15,15 @@ const tabs = [
   { label: 'Play', icon: 'play', to: '/play', activeOn: '/play' },
   { label: 'Learn', icon: 'learn', to: '/how-to-play', activeOn: '/how-to-play' },
   { label: 'Rankings', icon: 'trophy', to: '/rankings', activeOn: '/rankings' },
-  // Add this tab when you have the /settings route:
-  // { label: 'Settings', icon: 'settings', to: '/settings', activeOn: '/settings' },
 ]
 
-// Home is only active on "/", the other tabs are also active on sub-pages (/play/local)
 function isActive(tab) {
   return tab.activeOn === '/' ? route.path === '/' : route.path.startsWith(tab.activeOn)
 }
+
+onMounted(() => {
+  authStore.fetchUser()
+})
 </script>
 
 <template>
@@ -44,22 +49,31 @@ function isActive(tab) {
         </RouterLink>
       </nav>
 
-      <div class="header-right">
-        <RouterLink to="/login" class="signin">
-          <svg class="icon">
-            <use :href="EXTRA_ICONS + '#login'" />
-          </svg>
-          Sign in
-        </RouterLink>
+      
+<div class="header-right">
+  <RouterLink
+    v-if="!authStore.isAuthenticated"
+    to="/login"
+    class="signin">
+    <svg class="icon">
+      <use :href="EXTRA_ICONS + '#login'" />
+    </svg>
+    Sign in
+  </RouterLink>
 
-        <RouterLink to="/profile" class="profile">
-          <img class="profile-picture" src="/design/mochi-mascot.svg" alt="" />
-          <span class="profile-text">
-            <strong>Sofia</strong>
-            <small class="leaves">1,240 🍃 </small>
-          </span>
-        </RouterLink>
-      </div>
+  <RouterLink
+    v-else
+    to="/profile"
+    class="profile"
+  >
+    <img class="profile-picture" src="/design/mochi-mascot.svg" alt="" />
+    <span class="profile-text">
+      <strong>{{ authStore.user?.username || 'Player' }}</strong>
+      <small class="leaves">1,240 🍃</small>
+    </span>
+  </RouterLink>
+</div>
+
     </header>
 
     <main>

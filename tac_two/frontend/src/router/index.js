@@ -7,6 +7,7 @@ import HowToPlayView from '../views/HowToPlayView.vue'
 import AuthView from '../views/AuthView.vue'
 import RankingsView from '../views/RankingsView.vue'
 import PlayView from '../views/PlayView.vue'
+import GameView from '../views/GameView.vue'
 export const routes = [
   {
     path: '/',
@@ -23,12 +24,6 @@ export const routes = [
     name: 'how-to-play',
     component: HowToPlayView,
   },
-
-{
-  path: '/login',
-  name: 'login',
-  component: AuthView,
-},
 {
   path: '/rankings',
   name: 'rankings',
@@ -45,6 +40,10 @@ export const routes = [
     component: AuthView,
     meta: { bare: true }, // full screen page: App.vue hides the header
   },
+{ path: '/play', name: 'play', component: PlayView },
+{ path: '/play/local', name: 'local-game', component: GameView },
+{ path: '/play/computer', name: 'computer-game', component: GameView },
+{ path: '/play/online', name: 'online-game', component: GameView },
 ]
 
 const router = createRouter({

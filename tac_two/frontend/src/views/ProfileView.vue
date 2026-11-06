@@ -1,6 +1,10 @@
 <script setup>
+import { useAuthStore } from '../stores/auth'
+
+const authStore = useAuthStore()
+
 const ICONS = '/design/tac2-interface-icons.svg'
-const EXTRA_ICONS = '/design/tac2-extra-icons.svg' // leaf icon lives here
+const EXTRA_ICONS = '/design/tac2-extra-icons.svg'
 
 const progress = 72 // percent of the way to the next level
 
@@ -32,8 +36,9 @@ const recentMatches = [
 
       <div class="profile-main">
         <p class="eyebrow">Player profile</p>
-        <h1>Sofia Scardovi</h1>
-        <p class="profile-meta">@sofiaplays · Joined this spring</p>
+        <h1>{{ authStore.user?.username || 'Player' }}</h1><p class="profile-meta">
+            {{ authStore.user?.email || '' }}
+        </p>
       </div>
 
       <button class="secondary-action">Edit profile</button>
