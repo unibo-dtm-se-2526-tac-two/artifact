@@ -1,3 +1,18 @@
+## [1.2.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.1.0...1.2.0) (2026-11-07)
+
+### Features
+
+* add game engine with forced board rule and chess clock ([8cbb1ed](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/8cbb1ed12bf1470cb55f5555520b75aa80df727c))
+* add small board with win detection ([6981bd5](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/6981bd5b265fb39ccb4dd15e598d54714d958f21))
+
+### General maintenance
+
+* Refactor CHANGELOG.md to clean up entries ([505c22f](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/505c22f62edfb83ed592495fd7b32285fc170d60))
+
+### Style improvements
+
+* format game engine with ruff ([05e16c3](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/05e16c30cc0ef63c805f16d1b67eec02ae9ea4d9))
+
 ## [1.1.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.0.0...1.1.0) (2026-10-29)
 
 ### Features
