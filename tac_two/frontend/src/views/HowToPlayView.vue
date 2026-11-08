@@ -45,8 +45,16 @@ const exampleBoards = [
 ]
 
 const tips = [
-  { icon: '✦', title: 'Plan ahead', text: "Think about your next move and your opponent's options." },
-  { icon: '♡', title: 'Watch the whole board', text: 'A small-board win can bring you closer to the big one.' },
+  {
+    icon: '✦',
+    title: 'Plan ahead',
+    text: "Think about your next move and your opponent's options.",
+  },
+  {
+    icon: '♡',
+    title: 'Watch the whole board',
+    text: 'A small-board win can bring you closer to the big one.',
+  },
   { icon: '☁', title: 'Enjoy the game', text: 'Every round is a chance to learn a new strategy.' },
 ]
 </script>
@@ -94,12 +102,10 @@ const tips = [
         <p class="eyebrow">The special twist</p>
         <h2>Your square decides their board.</h2>
         <p>
-          Every square on a small board corresponds to another board in the larger 3 × 3 grid.
-          If you play in the top-right square, your opponent goes to the top-right board.
+          Every square on a small board corresponds to another board in the larger 3 × 3 grid. If
+          you play in the top-right square, your opponent goes to the top-right board.
         </p>
-        <p>
-          So don't just ask, “Where can I win?” Ask, “Where will my move send them?”
-        </p>
+        <p>So don't just ask, “Where can I win?” Ask, “Where will my move send them?”</p>
       </div>
 
       <div class="twist-example">
