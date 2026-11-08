@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.2.0...1.3.0) (2026-11-08)
+
+### Features
+
+* add bot interface with random and greedy bots ([a1f3cda](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/a1f3cdab0a25497e3bfff07faec5699a78911a69))
+
 ## [1.2.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.1.0...1.2.0) (2026-11-07)
 
 ### Features
