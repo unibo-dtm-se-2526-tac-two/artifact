@@ -9,6 +9,9 @@ async function mountPlayView() {
     history: createMemoryHistory(),
     routes: [
       { path: '/play', component: PlayView },
+      { path: '/play/local', component: { template: '<div>Local game</div>' } },
+      { path: '/play/computer', component: { template: '<div>Computer game</div>' } },
+      { path: '/play/online', component: { template: '<div>Online game</div>' } },
     ],
   })
 
@@ -23,43 +26,94 @@ async function mountPlayView() {
 
   await flushPromises()
 
-  return wrapper
+  return { wrapper, router }
 }
 
 describe('PlayView', () => {
   it('shows the three game modes', async () => {
-    const wrapper = await mountPlayView()
+    const { wrapper } = await mountPlayView()
 
-    expect(wrapper.text()).toContain('Local match')
-    expect(wrapper.text()).toContain('Play vs Mochi')
+    expect(wrapper.text()).toContain('Pass & play')
+    expect(wrapper.text()).toContain('Challenge Mochi')
     expect(wrapper.text()).toContain('Online room')
   })
 
   it('shows all three difficulty levels', async () => {
-    const wrapper = await mountPlayView()
+    const { wrapper } = await mountPlayView()
 
-    expect(wrapper.text()).toContain('Cozy')
-    expect(wrapper.text()).toContain('Tricky')
-    expect(wrapper.text()).toContain('Mastermind')
+    expect(wrapper.text()).toContain('Kitten Steps')
+    expect(wrapper.text()).toContain('Clever Paws')
+    expect(wrapper.text()).toContain('Tiger Mode')
   })
 
-  it('links to the correct game modes', async () => {
-    const wrapper = await mountPlayView()
+  it('selects a game mode when clicked', async () => {
+    const { wrapper } = await mountPlayView()
 
-    expect(wrapper.find('a[href="/play/local"]').exists()).toBe(true)
-    expect(wrapper.find('a[href="/play/computer?level=easy"]').exists()).toBe(true)
-    expect(wrapper.find('a[href="/play/online"]').exists()).toBe(true)
+    const localMode = wrapper.findAll('.mode-card')[0]
+
+    await localMode.trigger('click')
+
+    expect(localMode.classes()).toContain('selected')
+    expect(localMode.attributes('aria-pressed')).toBe('true')
   })
 
-  it('highlights the preferred difficulty', async () => {
-    const wrapper = await mountPlayView()
+  it('starts a local game', async () => {
+    const { wrapper, router } = await mountPlayView()
 
-    expect(wrapper.find('.level-chip.preferred').exists()).toBe(true)
+    await wrapper.findAll('.mode-card')[0].trigger('click')
+    await wrapper.find('.start-button').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.path).toBe('/play/local')
   })
 
-  it('displays the clock information', async () => {
-    const wrapper = await mountPlayView()
+  it('starts a computer game with the selected difficulty', async () => {
+    const { wrapper, router } = await mountPlayView()
 
-    expect(wrapper.text()).toContain('Clock:')
+    const hardLevel = wrapper.findAll('.difficulty button')[2]
+    await hardLevel.trigger('click')
+
+    await wrapper.find('.start-button').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.path).toBe('/play/computer')
+    expect(router.currentRoute.value.query.level).toBe('hard')
+  })
+
+  it('allows the user to enter a room code', async () => {
+    const { wrapper } = await mountPlayView()
+
+    await wrapper.findAll('.mode-card')[2].trigger('click')
+    await wrapper.find('.online-tabs-sm button:nth-child(2)').trigger('click')
+
+    const input = wrapper.find('.room-join-input')
+
+    await input.setValue('abc123')
+
+    expect(input.element.value).toBe('ABC123')
+    expect(wrapper.text()).toContain('6/6 characters')
+  })
+
+  it('disables Join room when the code is incomplete', async () => {
+    const { wrapper } = await mountPlayView()
+
+    await wrapper.findAll('.mode-card')[2].trigger('click')
+    await wrapper.find('.online-tabs-sm button:nth-child(2)').trigger('click')
+
+    expect(wrapper.find('.start-button').attributes('disabled')).toBeDefined()
+  })
+
+  it('joins an online room with the entered code', async () => {
+    const { wrapper, router } = await mountPlayView()
+
+    await wrapper.findAll('.mode-card')[2].trigger('click')
+    await wrapper.find('.online-tabs-sm button:nth-child(2)').trigger('click')
+    await wrapper.find('.room-join-input').setValue('abc123')
+
+    await wrapper.find('.start-button').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.path).toBe('/play/online')
+    expect(router.currentRoute.value.query.room).toBe('ABC123')
   })
 })

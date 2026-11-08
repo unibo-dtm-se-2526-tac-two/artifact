@@ -1,4 +1,3 @@
-
 import { describe, it, expect } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
@@ -47,12 +46,9 @@ describe('App', () => {
     expect(wrapper.find('.tab.active').text()).toContain('Home')
   })
 
-  it('opens the profile page when the profile chip is clicked', async () => {
-    const { wrapper, router } = await mountApp()
+  it('shows the sign-in button when the user is not authenticated', async () => {
+    const { wrapper } = await mountApp()
 
-    await wrapper.find('.profile').trigger('click')
-    await flushPromises()
-
-    expect(router.currentRoute.value.path).toBe('/profile')
+    expect(wrapper.find('.signin').exists()).toBe(true)
   })
 })

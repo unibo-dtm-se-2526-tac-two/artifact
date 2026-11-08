@@ -1,48 +1,54 @@
 
 import { describe, it, expect } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
-import { createRouter, createMemoryHistory } from 'vue-router'
-import { createPinia } from 'pinia'
-import { routes } from '../src/router'
+import { mount } from '@vue/test-utils'
 import RankingsView from '../src/views/RankingsView.vue'
 
-async function mountRankingsView() {
-  const router = createRouter({
-    history: createMemoryHistory(),
-    routes,
-  })
-
-  await router.push('/rankings')
-  await router.isReady()
-
-  const wrapper = mount(RankingsView, {
-    global: {
-      plugins: [router, createPinia()],
-    },
-  })
-
-  await flushPromises()
-
-  return wrapper
-}
-
 describe('RankingsView', () => {
-  it('renders the rankings page heading', async () => {
-    const wrapper = await mountRankingsView()
+  it('renders the rankings page', () => {
+    const wrapper = mount(RankingsView)
 
-    expect(wrapper.find('h1').exists()).toBe(true)
+    expect(wrapper.find('.leaderboard-page').exists()).toBe(true)
   })
 
-  it('displays ranking content', async () => {
-    const wrapper = await mountRankingsView()
+  it('displays the leaderboard heading', () => {
+    const wrapper = mount(RankingsView)
 
-    expect(wrapper.text().toLowerCase()).toContain('ranking')
+    expect(wrapper.text()).toContain('The leaf board')
+    expect(wrapper.text()).toContain('Hall of clever moves')
   })
 
-  it('renders the rankings page without errors', async () => {
-    const wrapper = await mountRankingsView()
+  it('displays the season information', () => {
+    const wrapper = mount(RankingsView)
 
-    expect(wrapper.exists()).toBe(true)
-    expect(wrapper.find('.rankings-page').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Spring season')
+    expect(wrapper.text()).toContain('12 days left')
+  })
+
+  it('displays six players in the ranking table', () => {
+    const wrapper = mount(RankingsView)
+
+    expect(wrapper.findAll('.ranking-row')).toHaveLength(6)
+  })
+
+  it('displays the podium with three players', () => {
+    const wrapper = mount(RankingsView)
+
+    expect(wrapper.findAll('.podium-player')).toHaveLength(3)
+  })
+
+  it('displays the current user', () => {
+    const wrapper = mount(RankingsView)
+
+    expect(wrapper.text()).toContain('Sofia')
+    expect(wrapper.text()).toContain('You')
+  })
+
+  it('sorts players by leaves', () => {
+    const wrapper = mount(RankingsView)
+    const rows = wrapper.findAll('.ranking-row')
+
+    expect(rows[0].text()).toContain('LunaLoops')
+    expect(rows[1].text()).toContain('GridWizard')
+    expect(rows[2].text()).toContain('TeaAndTactics')
   })
 })
