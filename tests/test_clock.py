@@ -5,12 +5,11 @@ from tac_two.domain.game.common import Player
 
 X, O = Player.X, Player.O  # noqa: E741
 
-
-def test_default_is_ten_minutes_each() -> None:
+def test_default_is_five_minutes_each() -> None:
     clock = Clock(now=0)
-    assert clock.remaining(X) == 600
-    assert clock.remaining(O) == 600
-    assert DEFAULT_TIME_SECONDS == 600
+    assert clock.remaining(X) == 300
+    assert clock.remaining(O) == 300
+    assert DEFAULT_TIME_SECONDS == 300
 
 
 def test_only_the_active_player_loses_time() -> None:
