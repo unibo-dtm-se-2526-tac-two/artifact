@@ -5,6 +5,7 @@ from tac_two.domain.game.common import Player
 
 X, O = Player.X, Player.O  # noqa: E741
 
+
 def test_default_is_five_minutes_each() -> None:
     clock = Clock(now=0)
     assert clock.remaining(X) == 300
