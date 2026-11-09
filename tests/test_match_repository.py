@@ -10,7 +10,8 @@ from tac_two.adapters.database import create_engine, create_session_maker
 from tac_two.adapters.match_repository import SqlMatchRepository
 from tac_two.adapters.models import Base, UserTable
 from tac_two.domain.game.common import Player
-from tac_two.domain.match import Difficulty, EndReason, GameMode, Match
+from tac_two.domain.ai.factory import Difficulty
+from tac_two.domain.match import EndReason, GameMode, Match
 
 START = datetime(2026, 11, 1, 10, 0, 0, tzinfo=timezone.utc)
 

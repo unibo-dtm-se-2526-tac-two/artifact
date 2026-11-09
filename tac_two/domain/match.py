@@ -3,6 +3,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
+from tac_two.domain.ai.factory import Difficulty
 from tac_two.domain.game.common import Move, Player
 
 
@@ -10,12 +11,6 @@ class GameMode(str, Enum):
     LOCAL = "local"
     COMPUTER = "computer"
     ONLINE = "online"
-
-
-class Difficulty(str, Enum):
-    EASY = "easy"
-    MEDIUM = "medium"
-    HARD = "hard"
 
 
 class EndReason(str, Enum):

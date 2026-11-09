@@ -4,7 +4,8 @@ from uuid import uuid4
 import pytest
 
 from tac_two.domain.game.common import Player
-from tac_two.domain.match import Difficulty, EndReason, GameMode, Match
+from tac_two.domain.ai.factory import Difficulty
+from tac_two.domain.match import EndReason, GameMode, Match
 
 START = datetime(2026, 11, 1, 10, 0, 0)
 
