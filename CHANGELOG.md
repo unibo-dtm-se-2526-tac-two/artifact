@@ -1,3 +1,13 @@
+## [1.3.1](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.3.0...1.3.1) (2026-11-09)
+
+### Bug Fixes
+
+* set default clock to five minutes ([71d5cbb](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/71d5cbbac6ab18a96f999c3d254b903e52d7e609))
+
+### Style improvements
+
+* format clock test ([cabeedf](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/cabeedfb4590e832b7751ffbed0344914b2159f9))
+
 ## [1.3.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.2.0...1.3.0) (2026-11-08)
 
 ### Features
