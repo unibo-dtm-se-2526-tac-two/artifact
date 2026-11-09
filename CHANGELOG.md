@@ -1,3 +1,19 @@
+## [1.5.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.4.0...1.5.0) (2026-11-09)
+
+### Features
+
+* add match repository dependency ([14f3ce3](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/14f3ce3530e782b9aead5c8bc4dd05f6424775a8))
+* add match repository interface ([c4fcc24](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/c4fcc249ecab535e6359138f4bfdf011f7d9d054))
+* add match table ([510ab4e](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/510ab4e9db83c03bce3ffbc0f28cd1b7eda79709))
+* add match table migration ([5efee22](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/5efee22371bdd1a76d3291afe6d562f945ae1cfa))
+* add match to the domain ([41f3b9d](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/41f3b9d49e1a85300f3de899a6e0570ad0c8476e))
+* add sql match repository ([05546f3](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/05546f3562b173cb7358a5c83a28cd3b86bd2489))
+
+### Refactoring
+
+* use the difficulty from the bot factory ([841003a](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/841003afcbccfa800c121566f865400d29c938e6))
+* use win, draw and timeout as end reasons ([7aecaf6](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/7aecaf6141dca5fddc6d6de0d21377fd4bc0bc74))
+
 ## [1.4.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.3.1...1.4.0) (2026-11-09)
 
 ### Features
