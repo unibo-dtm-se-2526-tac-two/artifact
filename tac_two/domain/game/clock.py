@@ -7,7 +7,7 @@ deciding what time it is.
 
 from tac_two.domain.game.common import Player
 
-DEFAULT_TIME_SECONDS = 600.0  # 10 minutes each
+DEFAULT_TIME_SECONDS = 300.0  # 5 minutes each
 
 
 class Clock:
