@@ -51,7 +51,7 @@ def make_match(
         player_x_id=player_x_id,
         player_o_id=player_o_id,
         winner=winner,
-        end_reason=EndReason.NORMAL,
+        end_reason=EndReason.WIN if winner else EndReason.DRAW,
         time_limit_seconds=300,
         started_at=START,
         ended_at=START + timedelta(minutes=minutes),
