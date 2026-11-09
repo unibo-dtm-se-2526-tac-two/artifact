@@ -14,7 +14,7 @@ def make_match(
     mode: GameMode = GameMode.COMPUTER,
     difficulty: Difficulty | None = Difficulty.EASY,
     winner: Player | None = Player.X,
-    end_reason: EndReason = EndReason.NORMAL,
+    end_reason: EndReason = EndReason.WIN,
     ended_at: datetime = START + timedelta(minutes=5),
 ) -> Match:
     return Match(
@@ -53,7 +53,17 @@ def test_other_modes_have_no_difficulty(mode: GameMode) -> None:
 
 
 def test_draw_has_no_winner() -> None:
-    assert make_match(winner=None).winner is None
+    assert make_match(winner=None, end_reason=EndReason.DRAW).winner is None
+
+
+def test_draw_cannot_have_a_winner() -> None:
+    with pytest.raises(ValueError):
+        make_match(winner=Player.X, end_reason=EndReason.DRAW)
+
+
+def test_win_needs_a_winner() -> None:
+    with pytest.raises(ValueError):
+        make_match(winner=None, end_reason=EndReason.WIN)
 
 
 def test_timeout_needs_a_winner() -> None:

@@ -14,7 +14,8 @@ class GameMode(str, Enum):
 
 
 class EndReason(str, Enum):
-    NORMAL = "normal"
+    WIN = "win"
+    DRAW = "draw"
     TIMEOUT = "timeout"
 
 
@@ -39,7 +40,9 @@ class Match:
             raise ValueError("a match against the computer needs a difficulty")
         if self.mode != GameMode.COMPUTER and self.difficulty is not None:
             raise ValueError("only matches against the computer have a difficulty")
-        if self.end_reason == EndReason.TIMEOUT and self.winner is None:
-            raise ValueError("a match lost on time must have a winner")
+        if self.end_reason == EndReason.DRAW and self.winner is not None:
+            raise ValueError("a draw cannot have a winner")
+        if self.end_reason != EndReason.DRAW and self.winner is None:
+            raise ValueError("only a draw can end without a winner")
         if self.ended_at < self.started_at:
             raise ValueError("a match cannot end before it starts")
