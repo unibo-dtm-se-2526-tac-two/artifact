@@ -6,7 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from tac_two.adapters.models import MatchTable
 from tac_two.domain.game.common import Move, Player
-from tac_two.domain.match import Difficulty, EndReason, GameMode, Match
+from tac_two.domain.ai.factory import Difficulty
+from tac_two.domain.match import EndReason, GameMode, Match
 from tac_two.domain.match_repository import MatchRepository
 
 
