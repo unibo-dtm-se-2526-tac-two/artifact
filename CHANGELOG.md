@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.3.1...1.4.0) (2026-11-09)
+
+### Features
+
+* add minimax bot with alpha-beta pruning ([84332e1](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/84332e1e50c69eb651af9fd171d711f21af93bd8))
+
 ## [1.3.1](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.3.0...1.3.1) (2026-11-09)
 
 ### Bug Fixes
