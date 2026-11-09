@@ -7,9 +7,12 @@ from fastapi import Depends
 from fastapi_users.db import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+
 from tac_two.adapters.database import create_engine, create_session_maker
 from tac_two.adapters.models import UserTable
 from tac_two.adapters.settings import get_settings
+from tac_two.adapters.match_repository import SqlMatchRepository
+from tac_two.domain.match_repository import MatchRepository
 
 
 @lru_cache
@@ -27,3 +30,9 @@ async def get_user_db(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> AsyncIterator[SQLAlchemyUserDatabase[UserTable, uuid.UUID]]:
     yield SQLAlchemyUserDatabase(session, UserTable)
+
+
+async def get_match_repository(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> MatchRepository:
+    return SqlMatchRepository(session)
