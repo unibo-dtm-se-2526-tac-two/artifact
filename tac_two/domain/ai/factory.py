@@ -5,12 +5,14 @@ from enum import Enum
 
 from tac_two.domain.ai.bot import Bot
 from tac_two.domain.ai.greedy_bot import GreedyBot
+from tac_two.domain.ai.minimax_bot import MinimaxBot
 from tac_two.domain.ai.random_bot import RandomBot
 
 
 class Difficulty(Enum):
     EASY = "easy"
     MEDIUM = "medium"
+    HARD = "hard"
 
 
 class BotFactory:
@@ -20,4 +22,6 @@ class BotFactory:
             return RandomBot(rng)
         if difficulty is Difficulty.MEDIUM:
             return GreedyBot(rng)
+        if difficulty is Difficulty.HARD:
+            return MinimaxBot(rng=rng)
         raise ValueError(f"unknown difficulty: {difficulty}")
