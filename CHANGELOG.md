@@ -1,3 +1,10 @@
+## [1.6.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.5.0...1.6.0) (2026-11-10)
+
+### Features
+
+* add user statistics ([002d183](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/002d18318478af8aaa2c51aaeb8d2498eeff3582))
+* add user stats route ([d220b3c](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/d220b3c02e85bae526f43aacc4e8ee2a75e83b18))
+
 ## [1.5.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.4.0...1.5.0) (2026-11-09)
 
 ### Features
