@@ -1,3 +1,10 @@
+## [1.7.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.6.0...1.7.0) (2026-11-11)
+
+### Features
+
+* add game endpoints ([7336dfd](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/7336dfd82a8fad9ce412f20d14249187fbadbba6))
+* add game session with clock and bot ([854c511](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/854c511825c60b71ad3570c07f9fec45e7b8bb28))
+
 ## [1.6.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.5.0...1.6.0) (2026-11-10)
 
 ### Features
