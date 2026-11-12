@@ -1,3 +1,70 @@
+## [1.7.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.6.0...1.7.0) (2026-11-11)
+
+### Features
+
+* add game endpoints ([7336dfd](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/7336dfd82a8fad9ce412f20d14249187fbadbba6))
+* add game session with clock and bot ([854c511](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/854c511825c60b71ad3570c07f9fec45e7b8bb28))
+
+## [1.6.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.5.0...1.6.0) (2026-11-10)
+
+### Features
+
+* add user statistics ([002d183](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/002d18318478af8aaa2c51aaeb8d2498eeff3582))
+* add user stats route ([d220b3c](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/d220b3c02e85bae526f43aacc4e8ee2a75e83b18))
+
+## [1.5.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.4.0...1.5.0) (2026-11-09)
+
+### Features
+
+* add match repository dependency ([14f3ce3](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/14f3ce3530e782b9aead5c8bc4dd05f6424775a8))
+* add match repository interface ([c4fcc24](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/c4fcc249ecab535e6359138f4bfdf011f7d9d054))
+* add match table ([510ab4e](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/510ab4e9db83c03bce3ffbc0f28cd1b7eda79709))
+* add match table migration ([5efee22](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/5efee22371bdd1a76d3291afe6d562f945ae1cfa))
+* add match to the domain ([41f3b9d](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/41f3b9d49e1a85300f3de899a6e0570ad0c8476e))
+* add sql match repository ([05546f3](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/05546f3562b173cb7358a5c83a28cd3b86bd2489))
+
+### Refactoring
+
+* use the difficulty from the bot factory ([841003a](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/841003afcbccfa800c121566f865400d29c938e6))
+* use win, draw and timeout as end reasons ([7aecaf6](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/7aecaf6141dca5fddc6d6de0d21377fd4bc0bc74))
+
+## [1.4.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.3.1...1.4.0) (2026-11-09)
+
+### Features
+
+* add minimax bot with alpha-beta pruning ([84332e1](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/84332e1e50c69eb651af9fd171d711f21af93bd8))
+
+## [1.3.1](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.3.0...1.3.1) (2026-11-09)
+
+### Bug Fixes
+
+* set default clock to five minutes ([71d5cbb](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/71d5cbbac6ab18a96f999c3d254b903e52d7e609))
+
+### Style improvements
+
+* format clock test ([cabeedf](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/cabeedfb4590e832b7751ffbed0344914b2159f9))
+
+## [1.3.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.2.0...1.3.0) (2026-11-08)
+
+### Features
+
+* add bot interface with random and greedy bots ([a1f3cda](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/a1f3cdab0a25497e3bfff07faec5699a78911a69))
+
+## [1.2.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.1.0...1.2.0) (2026-11-07)
+
+### Features
+
+* add game engine with forced board rule and chess clock ([8cbb1ed](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/8cbb1ed12bf1470cb55f5555520b75aa80df727c))
+* add small board with win detection ([6981bd5](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/6981bd5b265fb39ccb4dd15e598d54714d958f21))
+
+### General maintenance
+
+* Refactor CHANGELOG.md to clean up entries ([505c22f](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/505c22f62edfb83ed592495fd7b32285fc170d60))
+
+### Style improvements
+
+* format game engine with ruff ([05e16c3](https://github.com/unibo-dtm-se-2526-tac-two/artifact/commit/05e16c30cc0ef63c805f16d1b67eec02ae9ea4d9))
+
 ## [1.1.0](https://github.com/unibo-dtm-se-2526-tac-two/artifact/compare/1.0.0...1.1.0) (2026-10-29)
 
 ### Features

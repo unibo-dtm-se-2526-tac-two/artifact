@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from tac_two.api.auth import auth_backend, fastapi_users
 from tac_two.api.schemas import UserCreate, UserRead, UserUpdate
+from tac_two.api.stats import router as stats_router
+from tac_two.api.games import router as games_router
 
 FRONTEND_ORIGINS = ["http://localhost:5173"]
 
@@ -30,6 +32,8 @@ def create_app() -> FastAPI:
         prefix="/api/v1/users",
         tags=["users"],
     )
+    app.include_router(stats_router, prefix="/api/v1/users", tags=["stats"])
+    app.include_router(games_router)
     return app
 
 
