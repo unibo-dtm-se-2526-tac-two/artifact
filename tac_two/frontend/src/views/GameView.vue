@@ -1,13 +1,14 @@
-
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { settings } from '../settings.js'
+import { useAuthStore } from '../stores/auth'
 import SettingsView from './SettingsView.vue'
 
 const showSettings = ref(false)
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const ICONS = '/design/tac2-interface-icons.svg'
 const EXTRA_ICONS = '/design/tac2-extra-icons.svg'
@@ -41,26 +42,224 @@ const playerTwoLabel = computed(() => {
   return 'Computer'
 })
 
+const symbols = computed(() =>
+  settings.markStyle === 'cozy' ? { X: '🍃', O: '🐾' } : { X: '×', O: '○' },
+)
+
+const markNames = computed(() =>
+  settings.markStyle === 'cozy' ? { X: 'Leaves', O: 'Paws' } : { X: 'Crosses', O: 'Noughts' },
+)
+
+// game sent by the backend (null until it arrives)
+const game = ref(null)
+const errorText = ref('')
+const busy = ref(false) // true while waiting the backend
+
+// request sent to the game API. token tells the backend whose progress it is,and it gets saved on the user profile
+async function callApi(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json' }
+  if (authStore.token) headers.Authorization = `Bearer ${authStore.token}`
+
+  const response = await fetch(`/api/v1/games${path}`, { ...options, headers })
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.detail === 'string' ? data.detail : 'Something went wrong.',
+    )
+  }
+  return data
+}
+
+// remember the new game and the moment we received it ( the clock needs it)
+let receivedAt = Date.now()
+function setGame(data) {
+  game.value = data
+  receivedAt = Date.now()
+}
+
+async function startGame() {
+  game.value = null
+  errorText.value = ''
+
+
+  if (isOnline.value) return
+
+  const body = {
+    mode: mode.value,
+    minutes: Number(settings.clockMinutes) || 0, // 0 = no clock
+  }
+
+  if (isComputer.value) {
+    const level = route.query.level || settings.difficulty
+    body.difficulty = ['easy', 'medium', 'hard'].includes(level) ? level : 'medium'
+  }
+
+  try {
+    setGame(await callApi('', { method: 'POST', body: JSON.stringify(body) }))
+  } catch (error) {
+    errorText.value = error.message
+  }
+}
+
+async function refreshGame() {
+  if (!game.value) return
+  try {
+    setGame(await callApi(`/${game.value.id}`))
+  } catch (error) {
+    errorText.value = error.message
+  }
+}
+
+// check whether player  can click this cell now
+function canPlay(boardId, cellId) {
+  const g = game.value
+  if (!g || busy.value || g.status !== 'playing') return false
+
+  // you only play when it is your turn in case the game is against computer
+  if (g.mode === 'computer' && g.current_player !== g.human_player) return false
+
+  if (g.board_winners[boardId] !== null) return false // this board is finished
+  if (g.boards[boardId][cellId] !== null) return false // the cell is taken
+
+  // last move decides where you must play (null = free choice)
+  return g.forced_board === null || g.forced_board === boardId
+}
+
+async function playMove(boardId, cellId) {
+  if (!canPlay(boardId, cellId)) return
+
+  busy.value = true
+  errorText.value = ''
+
+  game.value.boards[boardId][cellId] = game.value.current_player
+
+  try {
+    const body = JSON.stringify({ board: boardId, cell: cellId })
+    setGame(await callApi(`/${game.value.id}/moves`, { method: 'POST', body }))
+  } catch (error) {
+    errorText.value = error.message
+    await refreshGame() // go back to what the backend really has
+  } finally {
+    busy.value = false
+  }
+}
+
+// turn or game status
+const currentTurn = computed(() => game.value?.current_player ?? null)
+
+const isWaiting = computed(() => isOnline.value && !hasOpponent.value)
+const isThinking = computed(() => isComputer.value && currentTurn.value === 'O')
+
+const boards = computed(() =>
+  Array.from({ length: 9 }, (_, boardId) => ({
+    id: boardId,
+    winner: game.value?.board_winners[boardId] ?? null, // 'X' | 'O' | 'draw' | null
+    cells: Array.from({ length: 9 }, (_, cellId) => ({
+      id: cellId,
+      mark: game.value?.boards[boardId][cellId] ?? '',
+    })),
+  })),
+)
+
+// active board
+function isActiveBoard(board) {
+  if (!settings.highlightBoards) return false
+  if (!game.value || game.value.status !== 'playing') return false
+  if (game.value.mode === 'computer' && currentTurn.value !== game.value.human_player) {
+    return false
+  }
+  if (board.winner !== null) return false
+  return game.value.forced_board === null || game.value.forced_board === board.id
+}
+
+// last move made
+function isLastMove(boardId, cellId) {
+  const last = game.value?.last_moves?.at(-1)
+  return Boolean(last) && last.board === boardId && last.cell === cellId
+}
+
+// boards won
+const boardsWon = computed(() => {
+  const winners = game.value?.board_winners ?? []
+  return {
+    X: winners.filter((w) => w === 'X').length,
+    O: winners.filter((w) => w === 'O').length,
+  }
+})
+
+
+// timer
+const now = ref(Date.now())
+let timerId = null
+let checkingTime = false
+
+function secondsLeft(player) {
+  const clock = game.value?.clock
+  if (!clock) return null
+
+  let left = player === 'X' ? clock.x : clock.o
+  if (clock.active === player && game.value.status === 'playing') {
+    left -= (now.value - receivedAt) / 1000
+  }
+  return Math.max(0, left)
+}
+
+function formatTime(seconds) {
+  if (seconds === null) return '∞'
+  const total = Math.ceil(seconds)
+  const minutes = String(Math.floor(total / 60)).padStart(2, '0')
+  const rest = String(total % 60).padStart(2, '0')
+  return `${minutes}:${rest}`
+}
+
+const timeX = computed(() => {
+  if (!game.value) return startingTime.value
+  return formatTime(secondsLeft('X'))
+})
+
+const timeO = computed(() => {
+  if (!game.value) return startingTime.value
+  return formatTime(secondsLeft('O'))
+})
+
+// before the game arrives
 const startingTime = computed(() => {
   const minutes = Number(settings.clockMinutes)
   if (minutes === 0) return '∞'
   return `${String(minutes || 5).padStart(2, '0')}:00`
 })
 
-const symbols = computed(() =>
-  settings.markStyle === 'cozy' ? { X: '🐾', O: '🍃' } : { X: '×', O: '○' },
-)
+// timer work, and timeout actions
+async function tick() {
+  now.value = Date.now()
 
-const markNames = computed(() =>
-  settings.markStyle === 'cozy' ? { X: 'Paws', O: 'Leaves' } : { X: 'Crosses', O: 'Noughts' },
-)
+  const g = game.value
+  if (!g || g.status !== 'playing' || !g.clock || checkingTime || busy.value) return
 
-// Current turn
-// LATER: the game engine should update this value.
-const currentTurn = ref('X')
+  if (secondsLeft(g.clock.active) <= 0) {
+    checkingTime = true
+    await refreshGame()
+    checkingTime = false
+  }
+}
 
-const isYourTurn = computed(() => currentTurn.value === 'X')
-const isWaiting = computed(() => isOnline.value && !hasOpponent.value)
+// game over result
+const resultText = computed(() => {
+  const g = game.value
+  if (!g || g.status !== 'finished') return ''
+
+  const byTime = g.end_reason === 'timeout' ? ' on time' : ''
+
+  if (!g.winner) return 'It’s a draw!'
+
+  if (g.mode === 'computer') {
+    return g.winner === g.human_player ? `You win${byTime}! 🎉` : `Mochi wins${byTime}.`
+  }
+
+  const name = g.winner === 'X' ? playerName.value : 'Player 2'
+  return `${name} wins${byTime}! 🎉`
+})
 
 const mochiMessage = computed(() => {
   if (isWaiting.value) {
@@ -70,44 +269,38 @@ const mochiMessage = computed(() => {
     }
   }
 
-  if (isYourTurn.value) {
+  if (resultText.value) {
+    return { main: resultText.value, detail: 'Want to play again?' }
+  }
+
+  if (isThinking.value) {
     return {
-      main: 'Your turn! Ready, set, play!',
-      detail: 'Choose an empty square in the highlighted board.',
+      main: 'Now it’s my turn!',
+      detail: 'Let me think about my next move...',
     }
   }
 
   return {
-    main: 'Now it’s my turn!',
-    detail: 'Let me think about my next move...',
+    main: 'Your turn! Ready, set, play!',
+    detail: 'Choose an empty square in the highlighted board.',
   }
 })
-
-// Boards won so far
-const boardsWon = { X: 0, O: 0 }
-
-// Demo position
-const SHOW_DEMO_POSITION = true
-
-const demoPosition = {
-  4: { 4: 'X', 0: 'O', 8: 'O', 3: 'O' },
-  0: { 4: 'X' },
-  8: { 1: 'X' },
-  1: { 2: 'O' },
-  2: { 4: 'X' },
-}
-
-const boards = Array.from({ length: 9 }, (_, boardIndex) => ({
-  id: boardIndex,
-  cells: Array.from({ length: 9 }, (_, cellIndex) => ({
-    id: cellIndex,
-    mark: SHOW_DEMO_POSITION ? (demoPosition[boardIndex]?.[cellIndex] ?? '') : '',
-  })),
-}))
 
 function leaveGame() {
   router.push('/play')
 }
+
+onMounted(() => {
+  startGame()
+  timerId = window.setInterval(tick, 250)
+})
+
+onBeforeUnmount(() => {
+  window.clearInterval(timerId)
+})
+
+// Going from one game page to another starts a new game
+watch(() => route.fullPath, startGame)
 </script>
 
 <template>
@@ -123,10 +316,10 @@ function leaveGame() {
 
       <div class="header-right">
         <button
-  class="settings-button"
-  aria-label="Settings"
-  @click="showSettings = true"
->
+          class="settings-button"
+          aria-label="Settings"
+          @click="showSettings = true"
+        >
           ⚙
         </button>
       </div>
@@ -144,12 +337,25 @@ function leaveGame() {
       </p>
     </section>
 
+    <!-- MESSAGES -->
+    <p v-if="errorText" class="game-banner error">{{ errorText }}</p>
+
+    <p v-else-if="isOnline" class="game-banner">
+      Online rooms are coming soon. This board is only a preview.
+    </p>
+
+    <section v-else-if="resultText" class="game-banner result">
+      <strong>{{ resultText }}</strong>
+      <button type="button" class="banner-button" @click="startGame">Play again</button>
+      <button type="button" class="banner-button" @click="leaveGame">Back to menu</button>
+    </section>
+
     <!-- GAME AREA -->
     <section class="game-layout">
-      <!-- LEFT: YOU -->
+      <!-- LEFT BLOCK -->
       <div class="side-col">
         <article class="player-card player-one">
-          <span class="turn-tag">To move</span>
+          <span v-if="currentTurn === 'X'" class="turn-tag">To move</span>
 
           <div class="player-main">
             <div class="player-avatar">{{ symbols.X }}</div>
@@ -166,7 +372,7 @@ function leaveGame() {
               <svg class="icon">
                 <use :href="ICONS + '#clock'" />
               </svg>
-              <strong>{{ startingTime }}</strong>
+              <strong>{{ timeX }}</strong>
             </div>
 
             <div class="boards-won">
@@ -184,7 +390,7 @@ function leaveGame() {
         </article>
       </div>
 
-      <!-- CENTRE: BOARD -->
+      <!-- BOARD -->
       <div class="board-panel">
         <div class="board-stage">
           <div class="ultimate-board">
@@ -192,27 +398,42 @@ function leaveGame() {
               v-for="board in boards"
               :key="board.id"
               class="mini-board"
-              :class="{ 'active-board': board.id === 3 }"
+              :class="{ 'active-board': isActiveBoard(board) }"
             >
-              <div
+              <button
                 v-for="cell in board.cells"
                 :key="cell.id"
+                type="button"
                 class="board-cell"
                 :class="{
                   'mark-x': cell.mark === 'X',
                   'mark-o': cell.mark === 'O',
+                  'last-move': isLastMove(board.id, cell.id),
                 }"
+                :disabled="!canPlay(board.id, cell.id)"
+                @click="playMove(board.id, cell.id)"
               >
                 {{ symbols[cell.mark] }}
+              </button>
+
+              <!-- Small board won -->
+              <div
+                v-if="board.winner"
+                class="board-result"
+                :class="'result-' + board.winner"
+              >
+                {{ board.winner === 'draw' ? '–' : symbols[board.winner] }}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: OPPONENT AND MOCHI -->
+      <!-- RIGHT BLOCK -->
       <div class="side-col">
         <article class="player-card player-two">
+          <span v-if="currentTurn === 'O'" class="turn-tag">To move</span>
+
           <div class="player-main">
             <div class="player-avatar">
               <img
@@ -237,7 +458,7 @@ function leaveGame() {
               <svg class="icon">
                 <use :href="ICONS + '#clock'" />
               </svg>
-              <strong>{{ startingTime }}</strong>
+              <strong>{{ timeO }}</strong>
             </div>
 
             <div class="boards-won">
@@ -254,7 +475,7 @@ function leaveGame() {
           </div>
         </article>
 
-        <!-- MOCHI'S DYNAMIC MESSAGE -->
+        <!-- MOCHI MESSAGES -->
         <section v-if="isComputer || isOnline" class="mochi-says">
           <div class="mochi-pic">
             <img class="mochi-img" src="/design/mochi-mascot.svg" alt="" />
@@ -275,7 +496,7 @@ function leaveGame() {
       </div>
     </section>
 
-    <!-- SETTINGS POPUP -->
+    <!-- SETTINGS -->
     <SettingsView
       :open="showSettings"
       @close="showSettings = false"
@@ -868,5 +1089,99 @@ function leaveGame() {
 <style>
 .app:has(.game-page) {
   padding-bottom: 0;
+}
+
+/* ---------- Cells are buttons now ---------- */
+
+.board-cell {
+  padding: 0;
+  border: 0;
+  cursor: default;
+}
+
+.board-cell:not(:disabled) {
+  cursor: pointer;
+}
+
+.board-cell:not(:disabled):hover {
+  background: var(--teal-soft);
+}
+
+.board-cell.last-move {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+
+/* ---------- Finished board: big mark on top ---------- */
+
+.mini-board {
+  position: relative;
+}
+
+.board-result {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-title);
+  font-size: clamp(30px, 18cqmin, 120px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.board-result.result-X {
+  color: var(--coral);
+}
+
+.board-result.result-O {
+  color: var(--teal);
+}
+
+.board-result.result-draw {
+  color: var(--muted);
+}
+
+/* ---------- Message bar (error, online preview, game over) ---------- */
+
+.game-banner {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--teal-soft);
+  color: var(--teal-dark);
+  font-size: 14px;
+}
+
+.game-banner.error {
+  background: var(--coral-soft);
+  color: var(--danger);
+}
+
+.game-banner.result strong {
+  margin-right: auto;
+  font-family: var(--font-title);
+  font-size: 18px;
+}
+
+.banner-button {
+  padding: 7px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  color: var(--teal-dark);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.banner-button:hover {
+  background: var(--line);
 }
 </style>
