@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -49,7 +48,7 @@ function makeCode() {
   const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
   return Array.from({ length: 6 }, () =>
-    characters[Math.floor(Math.random() * characters.length)],
+    characters[Math.floor(Math.random() * characters.length)]
   ).join('')
 }
 
@@ -71,19 +70,15 @@ const setupText = computed(() => {
   }
 
   if (onlineTab.value === 'create') {
-    return 'Share the code with your friend to invite them.'
+    return 'Online multiplayer is not connected yet. This is a room preview only.'
   }
 
-  return 'Ask your friend for the six-letter room code.'
+  return 'You can preview the room screen, but joining a live match is not available yet.'
 })
 
 const buttonText = computed(() => {
-  if (selected.value === 2 && onlineTab.value === 'join') {
-    return 'Join room'
-  }
-
   if (selected.value === 2) {
-    return 'Create room'
+    return 'Preview room'
   }
 
   return 'Start game'
@@ -213,6 +208,18 @@ function start() {
         </button>
       </div>
 
+      <!-- The same setting is used by GameView and the backend game clock. -->
+      <div v-if="selected !== 2" class="clock-choice">
+        <label for="play-clock">Game clock</label>
+        <select id="play-clock" v-model.number="settings.clockMinutes">
+          <option :value="0">No timer</option>
+          <option :value="3">3 minutes</option>
+          <option :value="5">5 minutes</option>
+          <option :value="10">10 minutes</option>
+          <option :value="15">15 minutes</option>
+        </select>
+      </div>
+
       <!-- Online room setup -->
       <div v-if="selected === 2" class="online-setup">
         <div class="online-tabs-sm">
@@ -234,7 +241,7 @@ function start() {
         </div>
 
         <div v-if="onlineTab === 'create'" class="room-display">
-          <span class="room-code-label">Share this code</span>
+          <span class="room-code-label">Preview room code · not connected</span>
 
           <strong class="room-code-big">{{ roomCode }}</strong>
 
@@ -244,7 +251,7 @@ function start() {
             :class="{ copied }"
             @click="copyCode"
           >
-            {{ copied ? 'Copied!' : 'Copy code' }}
+            {{ copied ? 'Copied!' : 'Copy preview code' }}
           </button>
         </div>
 
@@ -253,7 +260,7 @@ function start() {
             v-model="joinCode"
             class="room-join-input"
             type="text"
-            placeholder="Enter 6-letter code..."
+            placeholder="Enter preview code..."
             maxlength="6"
             autocomplete="off"
             aria-label="Room code"
@@ -590,6 +597,37 @@ function start() {
   font-size: 11px;
 }
 
+/* Game clock */
+
+.clock-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 145px;
+}
+
+.clock-choice label {
+  color: var(--muted, #777d79);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.clock-choice select {
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--line, #e9e8e1);
+  border-radius: 10px;
+  background: white;
+  color: var(--ink, #292d2c);
+  font: inherit;
+  font-size: 13px;
+}
+
+.clock-choice select:focus-visible {
+  outline: 3px solid var(--teal, #368d83);
+  outline-offset: 2px;
+}
+
 /* Start button */
 
 .primary-action {
@@ -706,6 +744,7 @@ function start() {
 
   .setup-copy,
   .difficulty,
+  .clock-choice,
   .online-setup,
   .start-button {
     width: 100%;

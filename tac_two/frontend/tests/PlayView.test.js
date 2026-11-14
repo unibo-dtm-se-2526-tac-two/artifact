@@ -1,8 +1,8 @@
-
 import { describe, it, expect } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import PlayView from '../src/views/PlayView.vue'
+import { settings } from '../src/settings.js'
 
 async function mountPlayView() {
   const router = createRouter({
@@ -46,6 +46,19 @@ describe('PlayView', () => {
     expect(wrapper.text()).toContain('Tiger Mode')
   })
 
+  it('lets the player choose a game clock before starting', async () => {
+    const { wrapper } = await mountPlayView()
+
+    const clock = wrapper.find('#play-clock')
+    expect(clock.exists()).toBe(true)
+
+    await clock.setValue('0')
+
+    expect(clock.element.value).toBe('0')
+    expect(settings.clockMinutes).toBe(0)
+    settings.clockMinutes = 5
+  })
+
   it('selects a game mode when clicked', async () => {
     const { wrapper } = await mountPlayView()
 
@@ -80,7 +93,7 @@ describe('PlayView', () => {
     expect(router.currentRoute.value.query.level).toBe('hard')
   })
 
-  it('allows the user to enter a room code', async () => {
+  it('allows the player to enter a room code', async () => {
     const { wrapper } = await mountPlayView()
 
     await wrapper.findAll('.mode-card')[2].trigger('click')
