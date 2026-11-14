@@ -1,9 +1,9 @@
-
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
+const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -14,7 +14,12 @@ const showPassword = ref(false)
 const username = ref('')
 const email = ref('')
 const password = ref('')
-const message = ref(null)
+// If we were sent here because a page needs a sign-in, explain why
+const message = ref(
+  route.query.redirect
+    ? { type: 'info', text: 'Please sign in to play.' }
+    : null,
+)
 const isLoading = ref(false)
 
 function setMode(newMode) {
@@ -84,7 +89,11 @@ async function submitForm() {
         password.value,
       )
 
-      await router.push('/')
+      // Go back to the page the user wanted (for example /play), or Home
+      const wanted = route.query.redirect
+      await router.push(
+        typeof wanted === 'string' && wanted.startsWith('/') ? wanted : '/',
+      )
     }
   } catch (error) {
     message.value = {
@@ -595,7 +604,8 @@ async function submitForm() {
   color: var(--danger);
 }
 
-.auth-message.success {
+.auth-message.success,
+.auth-message.info {
   background: var(--teal-soft);
   color: var(--teal-dark);
 }
