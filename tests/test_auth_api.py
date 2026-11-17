@@ -16,13 +16,23 @@ LOGIN_URL = "/api/v1/auth/login"
 LOGOUT_URL = "/api/v1/auth/logout"
 ME_URL = "/api/v1/users/me"
 
+# user used in most of the tests
 NEW_USER = {
     "email": "sofia@example.com",
     "password": "password123",
     "username": "sofia_s",
 }
 
+# a second user, for the tests where two people are needed
+OTHER_USER = {
+    "email": "other@example.com",
+    "password": "password123",
+    "username": "other_name",
+}
 
+
+# Every test gets a new empty SQLite database in a temporary folder,
+# so the tests don't need PostgreSQL and don't affect each other.
 @pytest_asyncio.fixture
 async def client(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -31,11 +41,13 @@ async def client(
     monkeypatch.setenv("DATABASE_URL", database_url)
     monkeypatch.setenv("SECRET_KEY", "test-secret-with-more-than-thirty-two-characters")
 
+    # create the tables in the test database
     engine = create_engine(database_url)
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
     session_maker = create_session_maker(engine)
 
+    # the app uses the test database instead of the real one
     async def override_get_session() -> AsyncIterator[AsyncSession]:
         async with session_maker() as session:
             yield session
@@ -46,16 +58,21 @@ async def client(
     ) as test_client:
         yield test_client
 
+    # clean up after the test
     app.dependency_overrides.clear()
     await engine.dispose()
 
 
+# logs in and gives back the token (login wants form data, the email goes in "username")
 async def login(client: AsyncClient, email: str, password: str) -> str:
     response = await client.post(
         LOGIN_URL, data={"username": email, "password": password}
     )
     assert response.status_code == 200
     return str(response.json()["access_token"])
+
+
+# registration
 
 
 @pytest.mark.asyncio
@@ -65,6 +82,7 @@ async def test_register_creates_a_user(client: AsyncClient) -> None:
     body = response.json()
     assert body["email"] == NEW_USER["email"]
     assert body["username"] == NEW_USER["username"]
+    # the password must never come back, not even hashed
     assert "password" not in body
     assert "hashed_password" not in body
 
@@ -96,10 +114,14 @@ async def test_register_rejects_a_short_password(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_register_rejects_a_bad_username(client: AsyncClient) -> None:
+    # spaces are not allowed in the username
     response = await client.post(
         REGISTER_URL, json={**NEW_USER, "username": "sofia scardovi"}
     )
     assert response.status_code == 422
+
+
+# login, logged-in user and logout
 
 
 @pytest.mark.asyncio
@@ -144,6 +166,7 @@ async def test_logout_with_a_token(client: AsyncClient) -> None:
     assert response.status_code == 204
 
 
+# the frontend runs on localhost:5173, the backend must accept its requests
 @pytest.mark.asyncio
 async def test_frontend_origin_is_allowed(client: AsyncClient) -> None:
     response = await client.options(
@@ -155,3 +178,50 @@ async def test_frontend_origin_is_allowed(client: AsyncClient) -> None:
     )
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+# profile update (change of username)
+
+
+@pytest.mark.asyncio
+async def test_update_changes_the_username(client: AsyncClient) -> None:
+    await client.post(REGISTER_URL, json=NEW_USER)
+    token = await login(client, NEW_USER["email"], NEW_USER["password"])
+    # "new_name" is free, so the change must work
+    response = await client.patch(
+        ME_URL,
+        json={"username": "new_name"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    assert response.json()["username"] == "new_name"
+
+
+@pytest.mark.asyncio
+async def test_update_rejects_a_used_username(client: AsyncClient) -> None:
+    await client.post(REGISTER_URL, json=NEW_USER)
+    await client.post(REGISTER_URL, json=OTHER_USER)
+    token = await login(client, OTHER_USER["email"], OTHER_USER["password"])
+    # the second user tries to take the username of the first one
+    response = await client.patch(
+        ME_URL,
+        json={"username": NEW_USER["username"]},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    # before the fix this was a 500 error, now it must be a clear 400
+    assert response.status_code == 400
+    assert response.json()["detail"] == "UPDATE_USER_USERNAME_ALREADY_EXISTS"
+
+
+@pytest.mark.asyncio
+async def test_update_accepts_the_same_username(client: AsyncClient) -> None:
+    await client.post(REGISTER_URL, json=NEW_USER)
+    token = await login(client, NEW_USER["email"], NEW_USER["password"])
+    # saving the profile without changing the username must not give an error
+    response = await client.patch(
+        ME_URL,
+        json={"username": NEW_USER["username"]},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    assert response.json()["username"] == NEW_USER["username"]
