@@ -1,4 +1,3 @@
-
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SettingsView from '../src/views/SettingsView.vue'
@@ -45,14 +44,6 @@ describe('SettingsView', () => {
     expect(wrapper.emitted('close')).toHaveLength(1)
   })
 
-  it('updates the player name', async () => {
-    const wrapper = mountSettingsView()
-
-    await wrapper.find('#player-name').setValue('Alex')
-
-    expect(settings.playerName).toBe('Alex')
-  })
-
   it('changes the board marks to Cozy', async () => {
     const wrapper = mountSettingsView()
 
@@ -71,57 +62,41 @@ describe('SettingsView', () => {
     expect(settings.markStyle).toBe('classic')
   })
 
-  it('updates the difficulty', async () => {
-    const wrapper = mountSettingsView()
-
-    await wrapper.find('#difficulty').setValue('hard')
-
-    expect(settings.difficulty).toBe('hard')
-  })
-
-  it('updates the game timer', async () => {
-    const wrapper = mountSettingsView()
-
-    await wrapper.find('#clock').setValue('10')
-
-    expect(settings.clockMinutes).toBe(10)
-  })
-
   it('updates the highlight boards setting', async () => {
     const wrapper = mountSettingsView()
 
-    await wrapper.find('input[type="checkbox"]').setValue(false)
+    await wrapper.findAll('input[type="checkbox"]')[0].setValue(false)
 
     expect(settings.highlightBoards).toBe(false)
   })
 
-  it('updates the hints setting', async () => {
+  it('saves the sound effects setting', async () => {
     const wrapper = mountSettingsView()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    await wrapper.findAll('input[type="checkbox"]')[1].setValue(false)
 
-    await checkboxes[2].setValue(false)
+    expect(settings.soundEffects).toBe(false)
+  })
 
-    expect(settings.allowHints).toBe(false)
+  it('does not offer the difficulty or the timer (they are chosen on the Play page)', () => {
+    const wrapper = mountSettingsView()
+
+    expect(wrapper.find('#difficulty').exists()).toBe(false)
+    expect(wrapper.find('#clock').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Gameplay')
   })
 
   it('resets settings to their default values', async () => {
     const wrapper = mountSettingsView()
 
-    settings.playerName = 'Alex'
     settings.markStyle = 'cozy'
-    settings.clockMinutes = 10
-    settings.difficulty = 'hard'
     settings.highlightBoards = false
-    settings.allowHints = false
+    settings.soundEffects = false
 
     await wrapper.find('.reset-button').trigger('click')
 
-    expect(settings.playerName).toBe('Player')
     expect(settings.markStyle).toBe('classic')
-    expect(settings.clockMinutes).toBe(5)
-    expect(settings.difficulty).toBe('medium')
     expect(settings.highlightBoards).toBe(true)
-    expect(settings.allowHints).toBe(true)
+    expect(settings.soundEffects).toBe(true)
   })
 })

@@ -10,6 +10,7 @@ const defaults = {
   clockMinutes: 5, // 0 = no clock
   difficulty: 'medium', // 'easy' | 'medium' | 'hard'
   highlightBoards: true, // glow on the boards you are allowed to play in
+  soundEffects: true, // sound effects on or off (the audio itself is not built yet)
   allowHints: true, // show the Hint button
 }
 

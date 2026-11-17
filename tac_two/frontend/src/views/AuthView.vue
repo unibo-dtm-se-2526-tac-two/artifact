@@ -348,16 +348,16 @@ async function submitForm() {
 }
 
 .tile-one {
-  top: 32px;
-  right: 28px;
+  bottom: 400px;
+  left: 30px;
   width: 68px;
   height: 68px;
   font-size: 38px;
 }
 
 .tile-two {
-  top: 130px;
-  right: 96px;
+  bottom: 470px;
+  right: 34px;
   width: 50px;
   height: 50px;
   font-size: 30px;

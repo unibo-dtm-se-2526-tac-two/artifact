@@ -150,7 +150,7 @@ function start() {
       <h1 class="page-title">How would you like to play?</h1>
 
       <p class="page-subtitle">
-        Pick a mode. You can change the details before the first move.
+        Pick a mode. Play against Mochi or a friend.
       </p>
     </section>
 

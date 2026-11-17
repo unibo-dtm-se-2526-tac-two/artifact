@@ -9,7 +9,7 @@
       </p>
 
       <div class="buttons">
-        <a href="#modes" class="button">Choose a game →</a>
+        <a href="/play" class="button">Choose a game →</a>
         <a href="/how-to-play" class="link-button">
           <span class="play-circle">
             <svg class="icon">

@@ -145,7 +145,7 @@ const tips = [
         <h2>Let's make a move.</h2>
         <p>Put your new strategy to the test.</p>
       </div>
-      <button class="button" @click="router.push('/')">Choose a game →</button>
+      <button class="button" @click="router.push('/play')">Choose a game →</button>
     </section>
   </section>
 </template>

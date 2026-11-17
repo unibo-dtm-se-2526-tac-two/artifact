@@ -1,9 +1,7 @@
-
 <script setup>
-import { ref, watch } from 'vue'
 import { settings, resetSettings } from '../settings.js'
 
-const props = defineProps({
+defineProps({
   open: {
     type: Boolean,
     default: false,
@@ -11,8 +9,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
-const soundEffects = ref(true)
 
 function closeModal() {
   emit('close')
@@ -22,11 +18,6 @@ function handleOverlayClick(event) {
   if (event.target === event.currentTarget) {
     closeModal()
   }
-}
-
-function resetAll() {
-  resetSettings()
-  soundEffects.value = true
 }
 </script>
 
@@ -41,26 +32,13 @@ function resetAll() {
       <header class="settings-header">
         <div>
           <span class="settings-subtitle">GAME PREFERENCES</span>
-          <h2>Settings</h2>
+          <h1>Settings</h1>
         </div>
 
         <button class="close-button" @click="closeModal">×</button>
       </header>
 
       <div class="settings-content">
-        <!-- Player name -->
-        <div class="setting-section">
-          <h3>Player profile</h3>
-          <label for="player-name">Display name</label>
-          <input
-            id="player-name"
-            v-model="settings.playerName"
-            type="text"
-            maxlength="20"
-            placeholder="Enter your name"
-          />
-        </div>
-
         <!-- Appearance -->
         <div class="setting-section">
           <h3>Appearance</h3>
@@ -79,7 +57,7 @@ function resetAll() {
               :class="{ selected: settings.markStyle === 'cozy' }"
               @click="settings.markStyle = 'cozy'"
             >
-              <span class="choice-symbol">🐾 🍃</span>
+              <span class="choice-symbol">🍃 🐾</span>
               Cozy
             </button>
           </div>
@@ -97,7 +75,7 @@ function resetAll() {
         <div class="setting-section">
           <h3>Audio</h3>
           <label class="checkbox-setting">
-            <input v-model="soundEffects" type="checkbox" />
+            <input v-model="settings.soundEffects" type="checkbox" />
             Enable sound effects
           </label>
           <p class="setting-note">
@@ -105,35 +83,13 @@ function resetAll() {
           </p>
         </div>
 
-        <!-- Gameplay -->
-        <div class="setting-section">
-          <h3>Gameplay</h3>
-
-          <label for="difficulty">Default difficulty</label>
-          <select id="difficulty" v-model="settings.difficulty">
-            <option value="easy">Kitten Steps</option>
-            <option value="medium">Clever Paws</option>
-            <option value="hard">Tiger Mode</option>
-          </select>
-
-          <label for="clock">Default game timer</label>
-          <select id="clock" v-model.number="settings.clockMinutes">
-            <option :value="0">No timer</option>
-            <option :value="3">3 minutes</option>
-            <option :value="5">5 minutes</option>
-            <option :value="10">10 minutes</option>
-            <option :value="15">15 minutes</option>
-          </select>
-
-          <label class="checkbox-setting">
-            <input v-model="settings.allowHints" type="checkbox" />
-            Allow hints
-          </label>
-        </div>
+        <!-- The difficulty and the game timer are chosen on the Play page.
+             They are not here: this window opens during a game, and changing
+             them now could not change the game that is already running. -->
       </div>
 
       <footer class="settings-footer">
-        <button class="reset-button" @click="resetAll">
+        <button class="reset-button" @click="resetSettings">
           Reset defaults
         </button>
         <button class="save-button" @click="closeModal">
