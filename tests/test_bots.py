@@ -154,3 +154,8 @@ def test_greedy_beats_random_most_of_the_time() -> None:
         if winner is (X if greedy_is_x else O):
             wins += 1
     assert wins >= 20, f"greedy won only {wins}/{games}"
+
+
+def test_factory_rejects_an_unknown_difficulty() -> None:
+    with pytest.raises(ValueError):
+        BotFactory.create("impossible")  # type: ignore[arg-type]

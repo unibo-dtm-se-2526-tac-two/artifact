@@ -85,3 +85,9 @@ def test_clear_reopens_a_won_board() -> None:
 def test_clear_empty_cell_is_rejected() -> None:
     with pytest.raises(IllegalMoveError):
         SmallBoard().clear(0)
+
+
+@pytest.mark.parametrize("cell", [-1, 9])
+def test_clear_out_of_range_cell_is_rejected(cell: int) -> None:
+    with pytest.raises(IllegalMoveError):
+        SmallBoard().clear(cell)
