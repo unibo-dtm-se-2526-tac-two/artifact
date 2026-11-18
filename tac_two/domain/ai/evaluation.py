@@ -25,10 +25,20 @@ FREE_CHOICE = 8
 
 
 def _line_value(
-    cells: Sequence[Player | None], player: Player, values: tuple[int, ...]
+    cells: Sequence[Player | None],
+    player: Player,
+    values: tuple[int, ...],
+    dead: Sequence[bool] | None = None,
 ) -> int:
+    """Value of the lines that only one player can still complete.
+
+    `dead[i]` marks a cell that nobody can ever own (a drawn small board): every
+    line through it is skipped, for both players.
+    """
     score = 0
     for a, b, c in WIN_LINES:
+        if dead is not None and (dead[a] or dead[b] or dead[c]):
+            continue
         line = (cells[a], cells[b], cells[c])
         mine = sum(1 for owner in line if owner is player)
         theirs = sum(1 for owner in line if owner is player.opponent)
@@ -43,7 +53,8 @@ def evaluate(game: Game, player: Player) -> int:
     """Score the position of `game` from the point of view of `player`."""
     opponent = player.opponent
     owners = [board.winner for board in game.boards]
-    score = _line_value(owners, player, BIG_LINE)
+    drawn = [board.is_draw for board in game.boards]
+    score = _line_value(owners, player, BIG_LINE, drawn)
 
     for index, board in enumerate(game.boards):
         weight = BOARD_WEIGHT[index]
