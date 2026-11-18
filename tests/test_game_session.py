@@ -255,3 +255,11 @@ def test_full_game_against_each_bot_ends_with_a_result() -> None:
         while not session.game.is_over:
             session.play(rng.choice(session.game.legal_moves()))
         assert session.game.is_over
+
+
+def test_human_cannot_play_when_it_is_the_bots_turn() -> None:
+    time = FakeTime()
+    session = computer_session(time, SlowBot(time, thinking=0))
+    session.game.play((4, 4))  # the turn goes to O without the bot answering
+    with pytest.raises(IllegalMoveError):
+        session.play((4, 0))

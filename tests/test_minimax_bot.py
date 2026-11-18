@@ -2,10 +2,10 @@ import random
 
 import pytest
 
-from tac_two.domain.ai.evaluation import evaluate
+from tac_two.domain.ai.evaluation import BIG_LINE, _line_value, evaluate
 from tac_two.domain.ai.factory import BotFactory, Difficulty
 from tac_two.domain.ai.greedy_bot import GreedyBot
-from tac_two.domain.ai.minimax_bot import CHECK_EVERY, MinimaxBot
+from tac_two.domain.ai.minimax_bot import CHECK_EVERY, INFINITY, MinimaxBot
 from tac_two.domain.ai.random_bot import RandomBot
 from tac_two.domain.game.common import Player
 from tac_two.domain.game.game import Game
@@ -225,3 +225,34 @@ def test_a_real_time_limit_is_respected() -> None:
     elapsed = time.monotonic() - start
     assert move in game.legal_moves()
     assert elapsed < 2.0, f"took {elapsed:.2f}s with a 0.2s limit"
+
+
+def test_a_drawn_board_kills_the_big_lines_through_it() -> None:
+    owners = [X, X, None, None, None, None, None, None, None]
+    drawn = [False, False, True] + [False] * 6
+    # Without the drawn board, the line 0-1-2 is worth 60 and X gets 90 in total.
+    assert _line_value(owners, X, BIG_LINE) == 90
+    # With board 2 drawn, three lines disappear: only 3 lines worth 10 remain.
+    assert _line_value(owners, X, BIG_LINE, drawn) == 30
+
+
+def test_evaluation_stays_opposite_with_a_drawn_board() -> None:
+    game = Game()
+    mark(game, 0, X, 0, 1, 2)
+    mark(game, 1, X, 0, 1, 2)
+    for cell, player in enumerate([X, O, X, X, O, O, O, X, X]):
+        mark(game, 2, player, cell)  # board 2 is a draw
+    assert game.boards[2].is_draw
+    assert evaluate(game, X) == -evaluate(game, O)
+
+
+def test_search_scores_a_finished_draw_as_zero() -> None:
+    game = Game()
+    # Big board: X O X / X O O / O X X, which has no line. Board 8 is the last one.
+    for index, owner in enumerate([X, O, X, X, O, O, O, X]):
+        mark(game, index, owner, 0, 1, 2)
+    mark(game, 8, X, 0, 1)
+    game.play((8, 2))  # X wins board 8 and every board is closed
+    assert game.is_over
+    assert game.winner is None
+    assert MinimaxBot()._search(game, 1, -INFINITY, INFINITY, X) == 0
