@@ -438,3 +438,19 @@ async def test_pause_also_freezes_the_wait_of_the_bot(
     await resume(client, game_id)
     setup.time.advance(delay / 2)
     assert (await read(client, game_id)).json()["move_count"] == 2
+
+
+async def test_games_against_the_computer_always_have_five_minutes(
+    client: AsyncClient,
+) -> None:
+    for minutes in (0, 1, 60):
+        state = await create(
+            client, mode="computer", difficulty="easy", minutes=minutes
+        )
+        assert state["clock"] == {"x": 300, "o": 300, "active": "X", "running": True}
+
+
+async def test_local_games_keep_the_chosen_time(client: AsyncClient) -> None:
+    for minutes in (5, 10, 15):
+        state = await create(client, minutes=minutes)
+        assert state["clock"]["x"] == minutes * 60

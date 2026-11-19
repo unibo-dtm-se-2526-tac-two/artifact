@@ -31,6 +31,7 @@ from tac_two.domain.match import GameMode
 from tac_two.domain.match_repository import MatchRepository
 
 router = APIRouter(prefix="/api/v1/games", tags=["games"])
+BOT_GAME_MINUTES = 5.0  # against the computer the clock is always 5 minutes each
 
 # The token is optional: guests can play, but only logged-in players get their
 # finished games saved.
@@ -133,7 +134,7 @@ async def create_game(body: GameCreate, user: CurrentUser, store: Store) -> Game
     session = GameSession(
         mode,
         store.now,
-        minutes=body.minutes or None,
+        minutes=BOT_GAME_MINUTES if difficulty else body.minutes or None,
         bot=BotFactory.create(difficulty) if difficulty else None,
         difficulty=difficulty,
         owner_id=user.id if user else None,
