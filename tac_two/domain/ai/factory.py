@@ -17,9 +17,9 @@ class Difficulty(Enum):
 
 # Seconds Mochi waits before answering, so the person can follow the game.
 BOT_DELAY_SECONDS: dict[Difficulty, float] = {
-    Difficulty.EASY: 7.0,
-    Difficulty.MEDIUM: 5.0,
-    Difficulty.HARD: 3.0,
+    Difficulty.EASY: 6.0,
+    Difficulty.MEDIUM: 4.0,
+    Difficulty.HARD: 2.0,
 }
 
 
