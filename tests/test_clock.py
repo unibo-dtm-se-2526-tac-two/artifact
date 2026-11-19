@@ -72,3 +72,28 @@ def test_time_cannot_go_backwards() -> None:
 def test_initial_time_must_be_positive() -> None:
     with pytest.raises(ValueError):
         Clock(now=0, initial_seconds=0)
+
+
+def test_pause_stops_the_time_until_resume() -> None:
+    clock = Clock(now=0, initial_seconds=60)
+    clock.pause(10)
+    assert clock.is_paused
+    clock.tick(100)
+    assert clock.remaining(X) == 50
+    clock.resume(100)
+    assert not clock.is_paused
+    clock.tick(110)
+    assert clock.remaining(X) == 40
+
+
+def test_pausing_a_clock_whose_time_is_up_does_not_pause_it() -> None:
+    clock = Clock(now=0, initial_seconds=60)
+    assert clock.pause(70) is X
+    assert not clock.is_paused
+
+
+def test_the_turn_cannot_pass_while_paused() -> None:
+    clock = Clock(now=0, initial_seconds=60)
+    clock.pause(10)
+    with pytest.raises(ValueError):
+        clock.switch(20)

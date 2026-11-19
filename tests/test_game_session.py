@@ -41,10 +41,15 @@ def local_session(time: FakeTime, minutes: float | None = 5) -> GameSession:
 
 
 def computer_session(
-    time: FakeTime, bot: Bot, minutes: float | None = 5
+    time: FakeTime, bot: Bot, minutes: float | None = 5, bot_delay: float = 0.0
 ) -> GameSession:
     return GameSession(
-        GameMode.COMPUTER, time, minutes=minutes, bot=bot, difficulty=Difficulty.EASY
+        GameMode.COMPUTER,
+        time,
+        minutes=minutes,
+        bot=bot,
+        difficulty=Difficulty.EASY,
+        bot_delay=bot_delay,
     )
 
 
@@ -255,3 +260,157 @@ def test_full_game_against_each_bot_ends_with_a_result() -> None:
         while not session.game.is_over:
             session.play(rng.choice(session.game.legal_moves()))
         assert session.game.is_over
+
+
+def test_pause_freezes_the_clock() -> None:
+    time = FakeTime()
+    session = local_session(time)
+    time.advance(20)
+    session.pause()
+    assert session.paused
+    time.advance(1000)  # much more than the 300 seconds each player has
+    session.refresh()
+    assert not session.game.is_over
+    assert session.clock is not None
+    assert session.clock.remaining(X) == 280
+    session.resume()
+    assert not session.paused
+    time.advance(5)
+    session.refresh()
+    assert session.clock.remaining(X) == 275
+
+
+def test_no_move_can_be_played_while_paused() -> None:
+    session = local_session(FakeTime())
+    session.pause()
+    with pytest.raises(IllegalMoveError):
+        session.play((4, 4))
+    assert session.moves == []
+    session.resume()
+    session.play((4, 4))
+    assert session.moves == [(4, 4)]
+
+
+def test_pausing_twice_or_resuming_a_running_game_changes_nothing() -> None:
+    time = FakeTime()
+    session = local_session(time)
+    session.resume()  # not paused: nothing to do
+    time.advance(10)
+    session.pause()
+    time.advance(10)
+    session.pause()  # it is still paused since the first time
+    time.advance(10)
+    session.resume()
+    assert session.clock is not None
+    assert session.clock.remaining(X) == 290
+
+
+def test_pause_and_resume_are_refused_after_the_end() -> None:
+    time = FakeTime()
+    session = local_session(time)
+    time.advance(301)
+    session.refresh()
+    with pytest.raises(GameOverError):
+        session.pause()
+    with pytest.raises(GameOverError):
+        session.resume()
+
+
+def test_pausing_after_time_is_up_ends_the_game_instead() -> None:
+    time = FakeTime()
+    session = local_session(time)
+    time.advance(301)
+    session.pause()
+    assert session.game.is_over
+    assert not session.paused
+
+
+def test_a_game_without_clock_can_be_paused_too() -> None:
+    session = local_session(FakeTime(), minutes=None)
+    session.pause()
+    with pytest.raises(IllegalMoveError):
+        session.play((4, 4))
+    session.resume()
+    session.play((4, 4))
+    assert session.moves == [(4, 4)]
+
+
+def test_the_bot_delay_cannot_be_negative() -> None:
+    bot = BotFactory.create(Difficulty.EASY)
+    with pytest.raises(ValueError):
+        computer_session(FakeTime(), bot, bot_delay=-1)
+
+
+def test_a_local_game_has_no_bot_to_wait_for() -> None:
+    assert local_session(FakeTime()).bot_move_in is None
+
+
+def test_the_bot_answers_only_after_its_delay() -> None:
+    time = FakeTime()
+    session = computer_session(time, SlowBot(time, thinking=0), bot_delay=5)
+    session.play((4, 4))
+    assert session.moves == [(4, 4)]
+    assert session.bot_move_in == 5
+    assert session.clock is not None
+    assert not session.clock.is_paused  # the bot's clock runs while it waits
+    time.advance(4)
+    session.refresh()
+    assert len(session.moves) == 1
+    assert session.bot_move_in == 1
+    with pytest.raises(IllegalMoveError):
+        session.play((4, 0))  # it is the bot's turn
+    time.advance(1)
+    session.refresh()
+    assert len(session.moves) == 2
+    assert session.game.current_player is X
+    assert session.bot_move_in is None
+
+
+def test_the_bots_waiting_time_is_charged_to_the_bot() -> None:
+    time = FakeTime()
+    session = computer_session(time, SlowBot(time, thinking=0), bot_delay=5)
+    session.play((4, 4))
+    time.advance(100)  # nobody asks for the state for a long time
+    session.refresh()
+    assert len(session.moves) == 2  # the bot answered at the right moment
+    assert session.clock is not None
+    assert session.clock.remaining(O) == 295  # its 5 seconds of waiting
+    assert session.clock.remaining(X) == 205  # X's turn began 95 seconds ago
+
+
+def test_the_bot_loses_if_its_time_runs_out_while_it_waits() -> None:
+    time = FakeTime()
+    # 0.1 minutes = 6 seconds each, but the bot waits 7.
+    session = computer_session(
+        time, SlowBot(time, thinking=0), minutes=0.1, bot_delay=7
+    )
+    session.play((4, 4))
+    time.advance(7)
+    session.refresh()
+    assert session.game.is_over
+    assert session.game.winner is X
+    assert (
+        session.game.end_reason is not None
+        and session.game.end_reason.value == "timeout"
+    )
+    assert len(session.moves) == 1  # the bot never played
+
+
+def test_pause_freezes_the_bots_wait() -> None:
+    time = FakeTime()
+    session = computer_session(time, SlowBot(time, thinking=0), bot_delay=5)
+    session.play((4, 4))
+    time.advance(3)
+    session.pause()
+    assert session.bot_move_in == 2
+    time.advance(1000)
+    session.refresh()
+    assert len(session.moves) == 1
+    session.resume()
+    assert session.bot_move_in == 2
+    time.advance(1)
+    session.refresh()
+    assert len(session.moves) == 1
+    time.advance(1)
+    session.refresh()
+    assert len(session.moves) == 2
