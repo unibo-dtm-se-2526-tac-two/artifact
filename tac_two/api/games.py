@@ -1,4 +1,4 @@
-"""Routes to play a game: create it, read it, play a move.
+"""Routes to play a game: create it, read it, play a move, pause and resume.
 
 All the rules, the clock and the bot live in the domain. This module only turns
 HTTP requests into calls to a GameSession and the session back into JSON, and
@@ -24,7 +24,7 @@ from tac_two.api.game_schemas import (
     MoveIn,
     MoveOut,
 )
-from tac_two.domain.ai.factory import BotFactory, Difficulty
+from tac_two.domain.ai.factory import BOT_DELAY_SECONDS, BotFactory, Difficulty
 from tac_two.domain.game.common import GameOverError, IllegalMoveError, Player
 from tac_two.domain.game_session import HUMAN, GameSession
 from tac_two.domain.match import GameMode
@@ -92,10 +92,13 @@ def to_state(session: GameSession) -> GameState:
                 x=clock.remaining(Player.X),
                 o=clock.remaining(Player.O),
                 active=None if over else _mark(clock.active_player),
+                running=not over and not clock.is_paused,
             )
             if clock
             else None
         ),
+        paused=session.paused,
+        bot_move_in=session.bot_move_in,
         move_count=len(moves),
         last_moves=last_moves,
     )
@@ -134,6 +137,7 @@ async def create_game(body: GameCreate, user: CurrentUser, store: Store) -> Game
         bot=BotFactory.create(difficulty) if difficulty else None,
         difficulty=difficulty,
         owner_id=user.id if user else None,
+        bot_delay=BOT_DELAY_SECONDS[difficulty] if difficulty else 0.0,
     )
     store.add(session)
     return to_state(session)
@@ -145,7 +149,8 @@ async def get_game(
 ) -> GameState:
     async with store.open(game_id) as found:
         session = _check_access(found, user)
-        session.refresh()  # a game can end just because time went by
+        # Time may have ended the game, or the bot may have to answer now.
+        await run_in_threadpool(session.refresh)
         await _save_if_finished(session, repository)
         return to_state(session)
 
@@ -169,4 +174,29 @@ async def play_move(
         except IllegalMoveError as error:
             raise HTTPException(status_code=409, detail=str(error)) from None
         await _save_if_finished(session, repository)
+        return to_state(session)
+
+
+@router.post("/{game_id}/pause", response_model=GameState)
+async def pause_game(
+    game_id: uuid.UUID, user: CurrentUser, store: Store, repository: Repository
+) -> GameState:
+    async with store.open(game_id) as found:
+        session = _check_access(found, user)
+        try:
+            await run_in_threadpool(session.pause)
+        except GameOverError:
+            raise HTTPException(status_code=409, detail="The game is over.") from None
+        await _save_if_finished(session, repository)
+        return to_state(session)
+
+
+@router.post("/{game_id}/resume", response_model=GameState)
+async def resume_game(game_id: uuid.UUID, user: CurrentUser, store: Store) -> GameState:
+    async with store.open(game_id) as found:
+        session = _check_access(found, user)
+        try:
+            session.resume()
+        except GameOverError:
+            raise HTTPException(status_code=409, detail="The game is over.") from None
         return to_state(session)

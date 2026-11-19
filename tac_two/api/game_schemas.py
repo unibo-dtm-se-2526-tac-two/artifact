@@ -36,6 +36,7 @@ class ClockOut(BaseModel):
     x: float
     o: float
     active: Mark | None
+    running: bool  # False while paused or once finished
 
 
 class GameState(BaseModel):
@@ -51,5 +52,7 @@ class GameState(BaseModel):
     winner: Mark | None
     end_reason: Literal["win", "draw", "timeout"] | None
     clock: ClockOut | None
+    paused: bool  # a player paused the game
+    bot_move_in: float | None  # seconds before the bot answers (None: not waiting)
     move_count: int
     last_moves: list[MoveOut]  # the last two moves, oldest first
