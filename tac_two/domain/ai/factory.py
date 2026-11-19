@@ -15,6 +15,14 @@ class Difficulty(Enum):
     HARD = "hard"
 
 
+# Seconds Mochi waits before answering, so the person can follow the game.
+BOT_DELAY_SECONDS: dict[Difficulty, float] = {
+    Difficulty.EASY: 6.0,
+    Difficulty.MEDIUM: 4.0,
+    Difficulty.HARD: 2.0,
+}
+
+
 class BotFactory:
     @staticmethod
     def create(difficulty: Difficulty, rng: random.Random | None = None) -> Bot:
